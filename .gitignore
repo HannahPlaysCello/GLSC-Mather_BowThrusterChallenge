@@ -1,0 +1,23 @@
+# Compiled binary files
+bin/
+obj/
+*.exe
+*.dll
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+
+# Log files
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Config files
+*.config
+
+# Ignore asset cache or temporary files
+*.tmp
