@@ -29,6 +29,7 @@ public class Game1 : Game
     {
         LoadSettings();
         base.Initialize();
+
     }
 
 
@@ -36,7 +37,7 @@ public class Game1 : Game
     {
         try
         {
-            string jsonString = File.ReadAllText("config/appsettings.json");
+            string jsonString = File.ReadAllText("appsettings.json");
             _settings = JsonSerializer.Deserialize<Settings>(jsonString);
         
             if (_settings == null)
@@ -47,7 +48,11 @@ public class Game1 : Game
         //settings from config
         _graphics.PreferredBackBufferWidth = _settings.Window.Width; 
         _graphics.PreferredBackBufferHeight = _settings.Window.Height;
-        Window.Title = _settings.Window.Title;       
+        _graphics.ApplyChanges();  
+
+        Console.WriteLine($"Window Width: {_settings.Window.Width}, Height: {_settings.Window.Height}");
+        
+        Window.Title = _settings.Window.Title;    
         }
 
         catch (Exception ex)

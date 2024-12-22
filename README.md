@@ -1,4 +1,5 @@
 # Bow Thruster Challenge
+
 **Author:** Hannah M Ross
 
 **Started:** 3 December 2024
@@ -7,38 +8,44 @@
 
 -------
 
-## Description: 
-This program was written for the William G Mather 100th anniversary celebration traveling exhibit at the Great Lakes Science Center, launching in May of 2025. It is an educational tool for museum guests learning about the history of the Mather and it's significance in being the first ship on the Great Lakes to have bow thrusters. 
+## Description
+
+This program was written for the William G Mather 100th anniversary celebration traveling exhibit at the Great Lakes Science Center, launching in May of 2025. It is an educational tool for museum guests learning about the history of the Mather and its significance in being the first ship on the Great Lakes to have bow thrusters.
 
 The application compares the movement of a ship with just a rudder vs a ship with a rudder and bow thrusters and  can be controlled with keyboard inputs or with an external board. (Detailed description of the control board will be described in a seperate section.)
 
----------------
+-------
 
-## Features: 
+## Features
+
 8-bit graphics
 Multiple Control Options
 Score Tracking
 
--------------
+-------
 
-## Game Modes: 
+## Game Modes
+
 1. Rudder only -- navigate the boat only with the rear rudder
 2. Rudder + Thrusters -- navigate the boat with both rudder and thrusters
 3. Challenge Mode -- scores from just rudder vs rudder and thrusters are compared
 
------------
+-------
 
-## Asset List: 
+## Asset List
+
 1. Sprites:
-- Ship
+
+    - Ship
 
 2. UI Elements:
 
-3. Sounds: 
+3. Sounds:
 
------------------
+-------
 
-## Controls(keyboard): 
+## Controls(keyboard)
+
 |Action         |Keyboard Input |
 |---------------|---------------|
 |Forward        |`Up Arrow`     |
@@ -48,42 +55,45 @@ Score Tracking
 |Thruster right |`D`            |
 |Restart        |`X`            |
 
-----------------
+-------
 
-## Install Instructions: 
+## Install Instructions
+
 tbd
 
--------------------
+-------
 
-## Instructions for Use: 
+## Instructions for Use
+
 tbd
 
----------------------
+-------
 
-## control board construction: 
+## control board construction
+
 tbd
 This section will include instructions for building the external control board and mapping it to the game’s inputs
 
-----------------
+-------
 
-## Known Issues:
+## Known Issues
+
 no program yet
 
----------------
+-------
 
-## Future plans:
+## Future plans
+
 the program
 
----------------
+-------
 
-## Notes: 
-Developed by Hannah Ross. Please contact Ross at hmross02@gmail.com with questions and contributions
+## Notes
 
-----------
+Developed by Hannah Ross. Please contact Ross at <hmross02@gmail.com> with questions and contributions
 
-## License: 
+-------
+
+## License
+
 dont steal this thanks <3
-
-
-
-
