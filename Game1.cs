@@ -14,8 +14,9 @@ public class Game1 : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    private Settings _settings; 
-
+    private Settings _settings;
+    private Ship _ship;
+ 
 
 //game setup
     public Game1()
@@ -27,6 +28,7 @@ public class Game1 : Game
         // window setup
         Window.AllowUserResizing = true;
         Window.Position = new Point(0, 0); // top-left corner
+        
 
         _graphics.ApplyChanges();
     }
@@ -34,6 +36,10 @@ public class Game1 : Game
     protected override void Initialize()
     {
         LoadSettings();
+
+        // Initialize the ship at the center of the screen
+        _ship = new Ship(new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2));
+
         base.Initialize();
     }
 
@@ -90,6 +96,11 @@ public class Game1 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         // TODO: use this.Content to load your game content here
+        // Load the boat texture (sprite sheet)
+        Texture2D boatTexture = Content.Load<Texture2D>("MatherV1"); // Make sure the sprite sheet is named "boat.png"
+        _ship.LoadContent(boatTexture); // Load the content into the ship
+
+
     }
 
     protected override void Update(GameTime gameTime)
@@ -98,15 +109,25 @@ public class Game1 : Game
             Exit();
 
         // TODO: Add your update logic here
+        // Update the ship (handle movement and animation)
+        KeyboardState keyboardState = Keyboard.GetState();
+        _ship.Update(gameTime, keyboardState);
 
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        
+        GraphicsDevice.Clear(new Color(0, 69, 255, 0));
 
         // TODO: Add your drawing code here
+        _spriteBatch.Begin();
+
+        // Draw the ship (current frame of the sprite sheet)
+        _ship.Draw(_spriteBatch);
+
+         _spriteBatch.End();
 
         base.Draw(gameTime);
     }

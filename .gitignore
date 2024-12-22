@@ -18,7 +18,6 @@ Thumbs.db
 
 # Config files
 *.config
-*.json
 
 # Ignore asset cache or temporary files
 *.tmp
