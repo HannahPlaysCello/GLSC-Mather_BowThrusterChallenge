@@ -8,9 +8,14 @@
 
 -------
 
+<<<<<<< HEAD
 ## Description
 
 This program was written for the William G Mather 100th anniversary celebration traveling exhibit at the Great Lakes Science Center, launching in May of 2025. It is an educational tool for museum guests learning about the history of the Mather and its significance in being the first ship on the Great Lakes to have bow thrusters.
+=======
+## Description: 
+This program was written for the William G Mather 100th anniversary celebration traveling exhibit at the Great Lakes Science Center, launching in May of 2025. It is an educational tool for museum guests learning about the history of the Mather and its significance in being the first ship on the Great Lakes to have bow thrusters. 
+>>>>>>> a3f81b13efb9a222dd183efc5bc1b8b79c0a1919
 
 The application compares the movement of a ship with just a rudder vs a ship with a rudder and bow thrusters and  can be controlled with keyboard inputs or with an external board. (Detailed description of the control board will be described in a seperate section.)
 
