@@ -6,7 +6,10 @@ using System.IO;
 using System.Text.Json;
 using BowThrusterChallenge.Settings;
 using System;  
+
 using System.Windows.Forms; //for the screen
+
+
 
 namespace BowThrust_MonoGame;
 
@@ -18,12 +21,12 @@ public class Game1 : Game
     private Ship _ship;
  
 
-//game setup
+    //game setup
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = true;
+        IsMouseVisible = true; // <- change this after
 
         // window setup
         Window.AllowUserResizing = true;
@@ -36,12 +39,19 @@ public class Game1 : Game
     {
         LoadSettings();
 
-        // Initialize the ship at the center of the screen
-        _ship = new Ship(new Vector2(_graphics.PreferredBackBufferWidth / 2, _graphics.PreferredBackBufferHeight / 2));
+        int screenWidth = _graphics.PreferredBackBufferWidth;
+        int screenHeight = _graphics.PreferredBackBufferHeight;
+        //initialize the ship at the center of the screen, will need to place at the edge for actual gameplay 
+        _ship = new Ship(new Vector2(screenWidth / 2, screenHeight / 2), screenWidth, screenHeight);
 
         base.Initialize();
     }
 
+
+
+
+
+    //settings from jsons. maybe should handle totally differently
     private void LoadSettings()
     {
         try
@@ -89,16 +99,17 @@ public class Game1 : Game
     }
 
 
+
+
+
 //game content
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // TODO: use this.Content to load your game content here
-        // Load the boat texture (sprite sheet)
-        Texture2D boatTexture = Content.Load<Texture2D>("MatherV2"); // Make sure the sprite sheet is named "boat.png"
-        _ship.LoadContent(boatTexture); // Load the content into the ship
-
+        //boat texture (boat sprite sheet) from ship.cs
+        Texture2D boatTexture = Content.Load<Texture2D>("testingGrid"); 
+        _ship.LoadContent(boatTexture);
 
     }
 
@@ -107,8 +118,6 @@ public class Game1 : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == Microsoft.Xna.Framework.Input.ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
             Exit();
 
-        // TODO: Add your update logic here
-        // Update the ship (handle movement and animation)
         KeyboardState keyboardState = Keyboard.GetState();
         _ship.Update(gameTime, keyboardState);
 
@@ -120,13 +129,14 @@ public class Game1 : Game
         
         GraphicsDevice.Clear(new Color(0, 69, 255, 0));
 
-        // TODO: Add your drawing code here
         _spriteBatch.Begin();
 
-        // Draw the ship (current frame of the sprite sheet)
-        _ship.Draw(_spriteBatch);
+        _ship.Draw(_spriteBatch); //draw the right frame from ship.cs
 
-         _spriteBatch.End();
+
+
+
+        _spriteBatch.End();
 
         base.Draw(gameTime);
     }
