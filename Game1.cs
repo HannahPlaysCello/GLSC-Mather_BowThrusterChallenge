@@ -28,7 +28,6 @@ public class Game1 : Game
         // window setup
         Window.AllowUserResizing = true;
         Window.Position = new Point(0, 0); // top-left corner
-        
 
         _graphics.ApplyChanges();
     }
@@ -97,7 +96,7 @@ public class Game1 : Game
 
         // TODO: use this.Content to load your game content here
         // Load the boat texture (sprite sheet)
-        Texture2D boatTexture = Content.Load<Texture2D>("MatherV1"); // Make sure the sprite sheet is named "boat.png"
+        Texture2D boatTexture = Content.Load<Texture2D>("MatherV2"); // Make sure the sprite sheet is named "boat.png"
         _ship.LoadContent(boatTexture); // Load the content into the ship
 
 
