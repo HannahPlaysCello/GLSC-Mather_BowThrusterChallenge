@@ -20,7 +20,7 @@ namespace BowThrust_MonoGame
         private int _frameWidth = 160; // Width of  frame
         private int _frameHeight = 160; // Height for frame
         private int _currentFrame = 0; // index for sprite sheet frame
-        private double _frameTime = 0.2f; // time between frames (seconds) <- CHANGE THIS VALUE TO CHANGE ANIMATION RATE
+        private double _frameTime = 0.15f; // time between frames (seconds) <- CHANGE THIS VALUE TO CHANGE ANIMATION RATE
         private double _elapsedTime = 0;
         private int _numFramesPerRow = 2; //sprite sheet is 2x2
         private int _numRows = 2; 
@@ -29,7 +29,7 @@ namespace BowThrust_MonoGame
         // motion var for boat
         private float _rotation; //in radians
         private float _speed = 100f; //for forward motion
-        private float _turnSpeed = 0.8f; //rotational speed
+        private float _turnSpeed = 0.8f; //rotational speed <- higher than final for testing
 
         public Vector2 Position { get => _position; set => _position = value; }
         
@@ -54,9 +54,9 @@ namespace BowThrust_MonoGame
         {
             // rudder
             if (keyboardState.IsKeyDown(Keys.A)) //turn left
-                _rotation += _turnSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; //last term just for debug
-            if (keyboardState.IsKeyDown(Keys.D)) // Move right
                 _rotation -= _turnSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; //last term just for debug
+            if (keyboardState.IsKeyDown(Keys.D)) // Move right
+                _rotation += _turnSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; //last term just for debug
 
             
             // forward movement

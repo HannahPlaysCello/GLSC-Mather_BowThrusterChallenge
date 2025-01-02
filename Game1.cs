@@ -10,7 +10,6 @@ using System;
 using System.Windows.Forms; //for the screen
 
 
-
 namespace BowThrust_MonoGame;
 
 public class Game1 : Game
@@ -26,11 +25,11 @@ public class Game1 : Game
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = true; // <- change this after
+        IsMouseVisible = false; 
 
         // window setup
         Window.AllowUserResizing = true;
-        Window.Position = new Point(0, 0); // top-left corner
+        Window.Position = new Point(0, 0); // not the top-left corner lol
 
         _graphics.ApplyChanges();
     }
@@ -41,12 +40,11 @@ public class Game1 : Game
 
         int screenWidth = _graphics.PreferredBackBufferWidth;
         int screenHeight = _graphics.PreferredBackBufferHeight;
-        //initialize the ship at the center of the screen, will need to place at the edge for actual gameplay 
-        _ship = new Ship(new Vector2(screenWidth / 2, screenHeight / 2), screenWidth, screenHeight);
+        //initialize the ship placement on screen
+        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
 
         base.Initialize();
     }
-
 
 
 
@@ -64,12 +62,13 @@ public class Game1 : Game
             {
                 throw new System.Exception("settings could not be loaded.");
             }
-        
-        //settings from config
-        _graphics.PreferredBackBufferWidth = _settings.Window.Width; 
+            
+        _graphics.IsFullScreen = true;
+        _graphics.HardwareModeSwitch = false;
+        _graphics.PreferredBackBufferWidth = _settings.Window.Width; //make window size so boat goes all the way to the edge
         _graphics.PreferredBackBufferHeight = _settings.Window.Height;
-        Window.Title = _settings.Window.Title;
-
+        //Window.IsBorderless = false;
+        
         _graphics.ApplyChanges();  
         
         Window.Title = _settings.Window.Title;    
@@ -87,7 +86,7 @@ public class Game1 : Game
     {
         _settings = new Settings
         {
-            Window = new WindowSettings { Width = 800, Height = 600, Title = "Bow Thruster Challenge" },
+            Window = new WindowSettings { Width = 1920, Height = 1080, Title = "Bow Thruster Challenge" },
             Controls = new ControlSettings { Forward = "W", RudderLeft = "A", RudderRight = "D", ThrusterLeft = "Q", ThrusterRight = "E", Restart = "R" }
         };
 
@@ -108,7 +107,7 @@ public class Game1 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         //boat texture (boat sprite sheet) from ship.cs
-        Texture2D boatTexture = Content.Load<Texture2D>("testingGrid"); 
+        Texture2D boatTexture = Content.Load<Texture2D>("MatherV2"); 
         _ship.LoadContent(boatTexture);
 
     }
