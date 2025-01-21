@@ -37,6 +37,13 @@
 /processorParam:TextureFormat=Color
 /build:MatherV2.png
 
+#begin MenuFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:MenuFont.spritefont
+
 #begin testingArrow.png
 /importer:TextureImporter
 /processor:TextureProcessor
