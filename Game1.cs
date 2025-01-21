@@ -5,9 +5,7 @@ using Microsoft.Xna.Framework.Input;
 using System.IO;
 using System.Text.Json;
 using BowThrusterChallenge.Settings;
-using System;  
-
-using System.Windows.Forms; //for the screen
+using System;
 
 
 namespace BowThrust_MonoGame;
@@ -17,7 +15,7 @@ public class Game1 : Game
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private Settings _settings;
-    private Ship _ship;
+    private ShipWThrusters _ship;
  
 
     //game setup
@@ -41,7 +39,7 @@ public class Game1 : Game
         int screenWidth = _graphics.PreferredBackBufferWidth;
         int screenHeight = _graphics.PreferredBackBufferHeight;
         //initialize the ship placement on screen
-        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
+        _ship = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
 
         base.Initialize();
     }
@@ -49,7 +47,7 @@ public class Game1 : Game
 
 
 
-    //settings from jsons. maybe should handle totally differently
+    //settings from jsons. maybe should handle totally differently idk
     private void LoadSettings()
     {
         try
@@ -73,7 +71,6 @@ public class Game1 : Game
         
         Window.Title = _settings.Window.Title;    
         }
-
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading config file {ex.Message}");

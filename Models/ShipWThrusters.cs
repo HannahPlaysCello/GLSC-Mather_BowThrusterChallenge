@@ -1,12 +1,11 @@
 using System;
-using System.DirectoryServices.ActiveDirectory;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace BowThrust_MonoGame
 {
-    public class Ship
+    public class ShipWThrusters
     {
         private Texture2D _boatTexture;
         private Vector2 _position;
@@ -17,18 +16,18 @@ namespace BowThrust_MonoGame
         private int _screenHeight;
 
         //sprite sheet
-        private Rectangle _sourceRectangle; // current frame of the sprite sheet
-        private int _frameWidth = 160; // Width of  frame
-        private int _frameHeight = 160; // Height for frame
-        private int _currentFrame = 0; // index for sprite sheet frame
-        private double _frameTime = 0.15f; // time between frames (seconds) <- CHANGE THIS VALUE TO CHANGE ANIMATION RATE
+        private Rectangle _sourceRectangle; 
+        private int _frameWidth = 160; 
+        private int _frameHeight = 160; 
+        private int _currentFrame = 0; 
+        private double _frameTime = 0.15f; 
         private double _elapsedTime = 0;
-        private int _numFramesPerRow = 2; //sprite sheet is 2x2
+        private int _numFramesPerRow = 2; 
         private int _numRows = 2; 
 
         
         // motion vars for boat
-        private float _rotation; //in radians
+        private float _rotation;
         private float _currentSpeed = 0f;
         private float _currentTurnSpeed = 0f;
 
@@ -36,10 +35,15 @@ namespace BowThrust_MonoGame
         private const float _accelerationRate = 100f;
         private const float _decelerationRate = 30f;
 
-        private const float _maxTurnSpeed = 1f; //rotational speed <- higher than final for testing
-        private const float _turnAccelerationRate = 2f; //
+        private const float _maxTurnSpeed = 1f; 
+        private const float _turnAccelerationRate = 2f; 
         private const float _turnDecelerationRate = 0.7f;
 
+        // THRUSTER STUFF
+        private float _currentThrusterSpeed = 0f;
+        private const float _maxThrusterSpeed = 100f;
+        private const float _thrusterAcceleration = 100f;
+        private const float _thrusterDeceleration = 80f;
 
         // Toggle movement variables
         private bool _isMovingForward = false;
@@ -47,8 +51,7 @@ namespace BowThrust_MonoGame
 
         public Vector2 Position { get => _position; set => _position = value; }
         
-        //boat graphic
-        public Ship(Vector2 initialPosition, int screenWidth, int screenHeight)
+        public ShipWThrusters(Vector2 initialPosition, int screenWidth, int screenHeight)
         {
             _position = initialPosition;
             _rotation = 0f;
@@ -60,22 +63,20 @@ namespace BowThrust_MonoGame
         {
             _boatTexture = boatTexture;
             _sourceRectangle = new Rectangle(0, 0, _frameWidth, _frameHeight); 
-            _origin = new Vector2(_boatTexture.Width / 100, _boatTexture.Height / 4); //figure out the numbers . 4 seems to be half the height, but seem to need a very large number to get it to spin around it's back end on width
+            _origin = new Vector2(_boatTexture.Width / 100, _boatTexture.Height / 4);
         }
 
-        //boat movement
         public void Update(GameTime gameTime, KeyboardState keyboardState)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-
-            //toggle for forward motion
+            // Toggle forward motion
             if (keyboardState.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space))
             {
                 _isMovingForward = !_isMovingForward;
             }
 
-            //forward accel/decel
+            // Forward acceleration/deceleration
             if (_isMovingForward)
             {
                 _currentSpeed = Math.Min(_currentSpeed + _accelerationRate * deltaTime, _maxSpeed);
@@ -85,7 +86,7 @@ namespace BowThrust_MonoGame
                 _currentSpeed = Math.Max(_currentSpeed - _decelerationRate * deltaTime, 0);
             }
 
-            //update forward pos
+            // Update forward position
             if (_currentSpeed > 0)
             {
                 float deltaX = (float)Math.Cos(_rotation) * _currentSpeed * deltaTime;
@@ -95,7 +96,7 @@ namespace BowThrust_MonoGame
                 _position.Y += deltaY;
             }
 
-            //turning accel/decel
+            // Turning acceleration/deceleration
             if (keyboardState.IsKeyDown(Keys.A))
             {
                 _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnAccelerationRate * deltaTime, -_maxTurnSpeed);
@@ -106,7 +107,6 @@ namespace BowThrust_MonoGame
             }
             else
             {
-                //decel turning speed
                 if (_currentTurnSpeed > 0)
                 {
                     _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnDecelerationRate * deltaTime, 0);
@@ -117,60 +117,70 @@ namespace BowThrust_MonoGame
                 }
             }
 
-            //update rotation based on current turn speed
+            // Update rotation based on current turn speed
             _rotation += _currentTurnSpeed * deltaTime;
 
+            // THRUSTER STUFF
+            if (keyboardState.IsKeyDown(Keys.Left))
+            {
+                _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterAcceleration * deltaTime, -_maxThrusterSpeed);
+            }
+            else if (keyboardState.IsKeyDown(Keys.Right))
+            {
+                _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterAcceleration * deltaTime, _maxThrusterSpeed);
+            }
+            else
+            {
+                // Decelerate thrusters
+                if (_currentThrusterSpeed > 0)
+                {
+                    _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterDeceleration * deltaTime, 0);
+                }
+                else if (_currentThrusterSpeed < 0)
+                {
+                    _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterDeceleration * deltaTime, 0);
+                }
+            }
 
+            // THRUSTER STUFF : movement PERPENDICULAR to direction
+            if (_currentThrusterSpeed != 0)
+            {
+                float sideDeltaX = (float)Math.Cos(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
+                float sideDeltaY = (float)Math.Sin(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
 
+                _position.X += sideDeltaX;
+                _position.Y += sideDeltaY;
+            }
 
-
-
-
-            /*// rudder
-            if (keyboardState.IsKeyDown(Keys.A)) //turn left
-                _rotation -= _turnSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; //last term just for debug
-            if (keyboardState.IsKeyDown(Keys.D)) // Move right
-                _rotation += _turnSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; //last term just for debug
-            */
-
-            
-            //boundary conditions
+            // Boundary conditions
             float spriteHalfWidth = _frameWidth * 0.5f;
             float spriteHalfHeight = _frameHeight * 0.5f;
             _position = BoundaryManager.ClampToBounds(_position, _screenWidth, _screenHeight, spriteHalfWidth, spriteHalfHeight);
 
-
-            //animation
+            // Animation
             _elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
             if (_elapsedTime >= _frameTime)
             {
                 _elapsedTime -= _frameTime;
                 _currentFrame++;
 
-                if (_currentFrame >= _numFramesPerRow * _numRows) //this is 4
+                if (_currentFrame >= _numFramesPerRow * _numRows) 
                     _currentFrame = 0;
                 
-                int row = _currentFrame / _numFramesPerRow; // find row
-                int col = _currentFrame % _numFramesPerRow; // find column 
+                int row = _currentFrame / _numFramesPerRow;
+                int col = _currentFrame % _numFramesPerRow;
 
-                _sourceRectangle.X = col * _frameWidth; // Update X based on column!
-                _sourceRectangle.Y = row * _frameHeight; // Update Y based on row!
+                _sourceRectangle.X = col * _frameWidth;
+                _sourceRectangle.Y = row * _frameHeight;
             }
 
             _previousKeyboardState = keyboardState;
         }
 
-
-
         public void Draw(SpriteBatch spriteBatch)
         {
-            //make the sprite the size i want
             float scale = 1f;
-
-            //draw the damn boat please
             spriteBatch.Draw(_boatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
-        
-        
         }
     }
 }
