@@ -113,7 +113,7 @@ public class Game1 : Game
 
 
 
-//game content
+    //game content
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -172,6 +172,15 @@ public class Game1 : Game
 
         else if (_currentState == GameState.Playing)
         {
+
+            if (keyboardState.IsKeyDown(Keys.M))
+            {
+            _currentState = GameState.Menu;
+
+            _ship = null;
+            _shipWThrusters = null;
+            }
+
             // Update the selected ship
             if (_useThrusters && _shipWThrusters != null)
                 _shipWThrusters.Update(gameTime, keyboardState);
@@ -204,17 +213,41 @@ public class Game1 : Game
         }
         else if (_currentState == GameState.Playing)
         {
-            // Draw the correct ship
+            //draw the correct ship
             if (_useThrusters && _shipWThrusters != null)
                 _shipWThrusters.Draw(_spriteBatch);
             else if (!_useThrusters && _ship != null)
                 _ship.Draw(_spriteBatch);
+
+
+            //drawing stuff on the playing screen
+            //instructions
+            string menuText = "Press M to return to menu";
+            string controlsText1 = "SPACE: Start/Stop | A: Left | D: Right";
+            string controlsText2 = "<-: Left Thruster | ->: Right Thruster";
+
+            //size for instructions
+            Vector2 textSize = _font.MeasureString(menuText);
+            Vector2 controlsText1Size = _font.MeasureString(controlsText1);
+            Vector2 controlsText2Size = _font.MeasureString(controlsText2);
+            
+            int screenWidth = _graphics.PreferredBackBufferWidth;
+            int screenHeight = _graphics.PreferredBackBufferHeight;
+            
+
+            //position for instrucitons
+            Vector2 menuPosition = new Vector2(screenWidth - textSize.X - 10, screenHeight - textSize.Y - 10);
+            Vector2 controlsPosition1 = new Vector2(screenWidth - controlsText1Size.X - 10, menuPosition.Y - controlsText1Size.Y - 5);
+            Vector2 controlsPosition2 = new Vector2(screenWidth - controlsText2Size.X - 10, controlsPosition1.Y - controlsText2Size.Y - 5);
+            
+            //draw instructions
+            _spriteBatch.DrawString(_font, menuText, menuPosition, Color.Gray);
+            _spriteBatch.DrawString(_font, controlsText1, controlsPosition1, Color.Gray);
+            _spriteBatch.DrawString(_font, controlsText2, controlsPosition2, Color.Gray);
+
         }
-
-
-
+         
         _spriteBatch.End();
-
         base.Draw(gameTime);
     }
 }
