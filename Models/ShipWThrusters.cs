@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -66,12 +67,12 @@ namespace BowThrust_MonoGame
             _origin = new Vector2(_boatTexture.Width / 100, _boatTexture.Height / 4);
         }
 
-        public void Update(GameTime gameTime, KeyboardState keyboardState)
+        public void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             // Toggle forward motion
-            if (keyboardState.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space))
+            if (keyboardState.IsKeyDown(_controlKeyMap["Go"]) && _previousKeyboardState.IsKeyUp(_controlKeyMap["Go"]))
             {
                 _isMovingForward = !_isMovingForward;
             }
@@ -97,11 +98,11 @@ namespace BowThrust_MonoGame
             }
 
             // Turning acceleration/deceleration
-            if (keyboardState.IsKeyDown(Keys.A))
+            if (keyboardState.IsKeyDown(_controlKeyMap["RudderLeft"]))
             {
                 _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnAccelerationRate * deltaTime, -_maxTurnSpeed);
             }
-            else if (keyboardState.IsKeyDown(Keys.D))
+            else if (keyboardState.IsKeyDown(_controlKeyMap["RudderRight"]))
             {
                 _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnAccelerationRate * deltaTime, _maxTurnSpeed);
             }
@@ -121,11 +122,11 @@ namespace BowThrust_MonoGame
             _rotation += _currentTurnSpeed * deltaTime;
 
             // THRUSTER STUFF
-            if (keyboardState.IsKeyDown(Keys.Left))
+            if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
             {
                 _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterAcceleration * deltaTime, -_maxThrusterSpeed);
             }
-            else if (keyboardState.IsKeyDown(Keys.Right))
+            else if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
             {
                 _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterAcceleration * deltaTime, _maxThrusterSpeed);
             }

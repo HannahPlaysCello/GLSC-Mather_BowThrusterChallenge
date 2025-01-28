@@ -6,7 +6,7 @@ using System.IO;
 using System.Text.Json;
 using BowThrusterChallenge.Settings;
 using System;
-
+using System.Collections.Generic;
 
 namespace BowThrust_MonoGame;
 
@@ -27,6 +27,10 @@ public class Game1 : Game
     private ShipWThrusters _shipWThrusters;
     private bool _useThrusters = false;
     private Texture2D _boatTexture;
+
+    private Color _backgroundColor;
+
+    private Dictionary<String, Keys> _controlKeyMap;
  
 
     //game setup
@@ -37,16 +41,17 @@ public class Game1 : Game
         IsMouseVisible = false; 
 
         // window setup
-        Window.AllowUserResizing = true;
-        Window.Position = new Point(0, 0); // not the top-left corner lol
+        Window.AllowUserResizing = false;
+        Window.Position = new Point(0, 0); // why does this not go to the top-left corner lol
 
-        _graphics.ApplyChanges();
+
+
     }
 
+    //
     protected override void Initialize()
     {
         LoadSettings();
-
         
         int screenWidth = _graphics.PreferredBackBufferWidth;
         int screenHeight = _graphics.PreferredBackBufferHeight;
@@ -55,14 +60,12 @@ public class Game1 : Game
         _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
 
-
         base.Initialize();
+
+        _graphics.ApplyChanges();  
     }
 
-
-
-
-    //settings from jsons. maybe should handle totally differently idk
+    //settings from json
     private void LoadSettings()
     {
         try
@@ -82,9 +85,44 @@ public class Game1 : Game
         _graphics.PreferredBackBufferHeight = _settings.Window.Height;
         //Window.IsBorderless = false;
         
-        _graphics.ApplyChanges();  
-        
-        Window.Title = _settings.Window.Title;    
+        Window.Title = _settings.Window.Title; 
+
+        //apply background color from JSON
+        _backgroundColor = new Color(
+            _settings.BackgroundColor.R, 
+            _settings.BackgroundColor.G, 
+            _settings.BackgroundColor.B, 
+            _settings.BackgroundColor.A
+        );
+
+        _controlKeyMap = new Dictionary<string, Keys>
+        {
+            { "Go", ParseKeyFromString(_settings.Controls.Go) },
+            { "RudderLeft", ParseKeyFromString(_settings.Controls.RudderLeft) },
+            { "RudderRight", ParseKeyFromString(_settings.Controls.RudderRight) },
+            { "ThrusterLeft", ParseKeyFromString(_settings.Controls.ThrusterLeft) },
+            { "ThrusterRight", ParseKeyFromString(_settings.Controls.ThrusterRight) },
+            { "Restart", ParseKeyFromString(_settings.Controls.Restart) },
+            { "Menu", ParseKeyFromString(_settings.Controls.Menu) },
+            { "Close", ParseKeyFromString(_settings.Controls.Close) },
+            { "Select", ParseKeyFromString(_settings.Controls.Select) },
+            { "MenuUp", ParseKeyFromString(_settings.Controls.MenuUp) },
+            { "MenuDown", ParseKeyFromString(_settings.Controls.MenuDown) }
+        };
+
+
+        /*
+        // Apply controls from JSON
+        string forwardControl = _settings.Controls.Forward;
+        string rudderLeftControl = _settings.Controls.RudderLeft;
+        string rudderRightControl = _settings.Controls.RudderRight;
+        string thrusterLeftControl = _settings.Controls.ThrusterLeft;
+        string thrusterRightControl = _settings.Controls.ThrusterRight;
+        string restartControl = _settings.Controls.Restart;
+        string menuControl = _settings.Controls.Menu;
+        string escapeControl = _settings.Controls.Escape;
+        */
+
         }
         catch (Exception ex)
         {
@@ -93,25 +131,51 @@ public class Game1 : Game
         }
     }
 
+    //for key input control from json!!!!!!!!!
+    private Keys ParseKeyFromString(string keyName)
+{
+    try
+    {
+        //make string to a Keys enum value
+        return (Keys)Enum.Parse(typeof(Keys), keyName);
+    }
+    catch (ArgumentException)
+    {
+        //fallback
+        Console.WriteLine($"Invalid key string: {keyName}");
+        return Keys.None;
+    }
+}
+    
     //if missing/error with config
     private void SetDefaultSettings()
     {
         _settings = new Settings
         {
-            Window = new WindowSettings { Width = 1920, Height = 1080, Title = "Bow Thruster Challenge" },
-            Controls = new ControlSettings { Forward = "W", RudderLeft = "A", RudderRight = "D", ThrusterLeft = "Q", ThrusterRight = "E", Restart = "R" }
+           Window = new WindowSettings 
+            { 
+                Width = 1920, 
+                Height = 1080, 
+                Title = "Bow Thruster Challenge" 
+            },
+            BackgroundColor = new ColorSettings
+            { 
+                R = 0, 
+                G = 69, 
+                B = 255, 
+                A = 255  // Default to fully opaque blue
+            },
+
+            Controls = new ControlSettings //fill these out!!!!!!!!!!
+            {
+                Go = "Space", 
+                RudderLeft = "A", 
+                RudderRight = "D", 
+                ThrusterLeft = "Left", 
+                ThrusterRight = "Right", 
+                Menu = "M" }
         };
-
-        _graphics.PreferredBackBufferWidth = _settings.Window.Width;
-        _graphics.PreferredBackBufferHeight = _settings.Window.Height;
-        Window.Title = _settings.Window.Title;
-
-        _graphics.ApplyChanges();
-    }
-
-
-
-
+    } 
 
     //game content
     protected override void LoadContent()
@@ -124,21 +188,22 @@ public class Game1 : Game
 
     }
 
+    //
     protected override void Update(GameTime gameTime)
     {
         KeyboardState keyboardState = Keyboard.GetState();
 
-        if (keyboardState.IsKeyDown(Keys.Escape))
+        if (keyboardState.IsKeyDown(_controlKeyMap["Close"]))
             Exit();
 
         if (_currentState == GameState.Menu)
         {
-            if (keyboardState.IsKeyDown(Keys.Up) && !_isKeyPressed)
+            if (keyboardState.IsKeyDown(_controlKeyMap["MenuUp"]) && !_isKeyPressed)
             {
                 _selectedOption = 0;  // Normal Mode
                 _isKeyPressed = true;
             }
-            if (keyboardState.IsKeyDown(Keys.Down) && !_isKeyPressed)
+            if (keyboardState.IsKeyDown(_controlKeyMap["MenuDown"]) && !_isKeyPressed)
             {
                 _selectedOption = 1;  // Thruster Mode
                 _isKeyPressed = true;
@@ -148,13 +213,13 @@ public class Game1 : Game
                 _isKeyPressed = false;
 
             
-            if (keyboardState.IsKeyDown(Keys.Enter))
+            if (keyboardState.IsKeyDown(_controlKeyMap["Select"]))
             {
                 _useThrusters = (_selectedOption == 1);
                 int screenWidth = _graphics.PreferredBackBufferWidth;
                 int screenHeight = _graphics.PreferredBackBufferHeight;
 
-                // Instantiate the correct ship
+                // make the correct ship
                 if (_useThrusters)
                     _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
                 else
@@ -173,7 +238,7 @@ public class Game1 : Game
         else if (_currentState == GameState.Playing)
         {
 
-            if (keyboardState.IsKeyDown(Keys.M))
+            if (keyboardState.IsKeyDown(_controlKeyMap["Menu"]))
             {
             _currentState = GameState.Menu;
 
@@ -183,18 +248,19 @@ public class Game1 : Game
 
             // Update the selected ship
             if (_useThrusters && _shipWThrusters != null)
-                _shipWThrusters.Update(gameTime, keyboardState);
+                _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap);
             else if (!_useThrusters && _ship !=null)
-                _ship.Update(gameTime, keyboardState);
+                _ship.Update(gameTime, keyboardState, _controlKeyMap);
         }
 
         base.Update(gameTime);
     }
 
+    //
     protected override void Draw(GameTime gameTime)
     {
         
-        GraphicsDevice.Clear(new Color(0, 69, 255, 0));
+        GraphicsDevice.Clear(_backgroundColor);
 
         _spriteBatch.Begin();
 
@@ -220,7 +286,7 @@ public class Game1 : Game
                 _ship.Draw(_spriteBatch);
 
 
-            //drawing stuff on the playing screen
+            //drawing stuff on the playing screen PROBABLY SHOULD PUT THIS IN ANOTHER FILE 
             //instructions
             string menuText = "Press M to return to menu";
             string controlsText1 = "SPACE: Start/Stop | A: Left | D: Right";
@@ -241,9 +307,9 @@ public class Game1 : Game
             Vector2 controlsPosition2 = new Vector2(screenWidth - controlsText2Size.X - 10, controlsPosition1.Y - controlsText2Size.Y - 5);
             
             //draw instructions
-            _spriteBatch.DrawString(_font, menuText, menuPosition, Color.Gray);
-            _spriteBatch.DrawString(_font, controlsText1, controlsPosition1, Color.Gray);
-            _spriteBatch.DrawString(_font, controlsText2, controlsPosition2, Color.Gray);
+            _spriteBatch.DrawString(_font, menuText, menuPosition, Color.LightGray);
+            _spriteBatch.DrawString(_font, controlsText1, controlsPosition1, Color.LightGray);
+            _spriteBatch.DrawString(_font, controlsText2, controlsPosition2, Color.LightGray);
 
         }
          

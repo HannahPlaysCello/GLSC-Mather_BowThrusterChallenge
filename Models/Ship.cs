@@ -1,12 +1,13 @@
 using System;
-//using System.DirectoryServices.ActiveDirectory;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace BowThrust_MonoGame
 {
-    public class Ship
+
+        public class Ship
     {
         private Texture2D _boatTexture;
         private Vector2 _position;
@@ -64,13 +65,13 @@ namespace BowThrust_MonoGame
         }
 
         //boat movement
-        public void Update(GameTime gameTime, KeyboardState keyboardState)
+        public void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
 
             //toggle for forward motion
-            if (keyboardState.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space))
+            if (keyboardState.IsKeyDown(_controlKeyMap["Go"]) && _previousKeyboardState.IsKeyUp(_controlKeyMap["Go"]))
             {
                 _isMovingForward = !_isMovingForward;
             }
@@ -96,11 +97,11 @@ namespace BowThrust_MonoGame
             }
 
             //turning accel/decel
-            if (keyboardState.IsKeyDown(Keys.A))
+            if (keyboardState.IsKeyDown(_controlKeyMap["RudderLeft"]))
             {
                 _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnAccelerationRate * deltaTime, -_maxTurnSpeed);
             }
-            else if (keyboardState.IsKeyDown(Keys.D))
+            else if (keyboardState.IsKeyDown(_controlKeyMap["RudderRight"]))
             {
                 _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnAccelerationRate * deltaTime, _maxTurnSpeed);
             }
@@ -120,20 +121,7 @@ namespace BowThrust_MonoGame
             //update rotation based on current turn speed
             _rotation += _currentTurnSpeed * deltaTime;
 
-
-
-
-
-
-
-            /*// rudder
-            if (keyboardState.IsKeyDown(Keys.A)) //turn left
-                _rotation -= _turnSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; //last term just for debug
-            if (keyboardState.IsKeyDown(Keys.D)) // Move right
-                _rotation += _turnSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds; //last term just for debug
-            */
-
-            
+           
             //boundary conditions
             float spriteHalfWidth = _frameWidth * 0.5f;
             float spriteHalfHeight = _frameHeight * 0.5f;
