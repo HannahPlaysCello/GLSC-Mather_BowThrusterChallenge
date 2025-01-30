@@ -31,6 +31,11 @@ public class Game1 : Game
     private Color _backgroundColor;
 
     private Dictionary<String, Keys> _controlKeyMap;
+
+    private TileMap _tileMap;
+    private Texture2D _waterTexture;
+    private Texture2D _landTexture;
+
  
 
     //game setup
@@ -43,8 +48,6 @@ public class Game1 : Game
         // window setup
         Window.AllowUserResizing = false;
         Window.Position = new Point(0, 0); // why does this not go to the top-left corner lol
-
-
 
     }
 
@@ -60,6 +63,8 @@ public class Game1 : Game
         _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
 
+        _tileMap = new TileMap();
+        
         base.Initialize();
 
         _graphics.ApplyChanges();  
@@ -111,18 +116,6 @@ public class Game1 : Game
         };
 
 
-        /*
-        // Apply controls from JSON
-        string forwardControl = _settings.Controls.Forward;
-        string rudderLeftControl = _settings.Controls.RudderLeft;
-        string rudderRightControl = _settings.Controls.RudderRight;
-        string thrusterLeftControl = _settings.Controls.ThrusterLeft;
-        string thrusterRightControl = _settings.Controls.ThrusterRight;
-        string restartControl = _settings.Controls.Restart;
-        string menuControl = _settings.Controls.Menu;
-        string escapeControl = _settings.Controls.Escape;
-        */
-
         }
         catch (Exception ex)
         {
@@ -133,19 +126,19 @@ public class Game1 : Game
 
     //for key input control from json!!!!!!!!!
     private Keys ParseKeyFromString(string keyName)
-{
-    try
     {
-        //make string to a Keys enum value
-        return (Keys)Enum.Parse(typeof(Keys), keyName);
+        try
+        {
+            //make string to a Keys enum value
+            return (Keys)Enum.Parse(typeof(Keys), keyName);
+        }
+        catch (ArgumentException)
+        {
+            //fallback
+            Console.WriteLine($"Invalid key string: {keyName}");
+            return Keys.None;
+        }
     }
-    catch (ArgumentException)
-    {
-        //fallback
-        Console.WriteLine($"Invalid key string: {keyName}");
-        return Keys.None;
-    }
-}
     
     //if missing/error with config
     private void SetDefaultSettings()
@@ -185,6 +178,11 @@ public class Game1 : Game
         //boat texture (boat sprite sheet) from ship.cs
         _boatTexture = Content.Load<Texture2D>("MatherV2"); 
         _font = Content.Load<SpriteFont>("MenuFont");
+
+        _waterTexture = Content.Load<Texture2D>("BlueWater"); 
+        _landTexture = Content.Load<Texture2D>("GreenLand"); 
+
+        _tileMap.LoadContent(_waterTexture, _landTexture);
 
     }
 
@@ -250,7 +248,7 @@ public class Game1 : Game
             if (_useThrusters && _shipWThrusters != null)
                 _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap);
             else if (!_useThrusters && _ship !=null)
-                _ship.Update(gameTime, keyboardState, _controlKeyMap);
+                _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
         }
 
         base.Update(gameTime);
@@ -279,6 +277,11 @@ public class Game1 : Game
         }
         else if (_currentState == GameState.Playing)
         {
+            
+            //draw the background
+            _tileMap.Draw(_spriteBatch);            
+            
+            
             //draw the correct ship
             if (_useThrusters && _shipWThrusters != null)
                 _shipWThrusters.Draw(_spriteBatch);
@@ -286,7 +289,7 @@ public class Game1 : Game
                 _ship.Draw(_spriteBatch);
 
 
-            //drawing stuff on the playing screen PROBABLY SHOULD PUT THIS IN ANOTHER FILE 
+            //drawing stuff on the playing screen TEMP THIS WILL GO IN ANOTHER FILE 
             //instructions
             string menuText = "Press M to return to menu";
             string controlsText1 = "SPACE: Start/Stop | A: Left | D: Right";

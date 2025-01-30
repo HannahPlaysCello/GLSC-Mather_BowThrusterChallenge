@@ -64,11 +64,13 @@ namespace BowThrust_MonoGame
             _origin = new Vector2(_boatTexture.Width / 100, _boatTexture.Height / 4); //figure out the numbers . 4 seems to be half the height, but seem to need a very large number to get it to spin around it's back end on width
         }
 
+
+
         //boat movement
-        public void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap)
+        public void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap, TileMap tileMap)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
+            
 
             //toggle for forward motion
             if (keyboardState.IsKeyDown(_controlKeyMap["Go"]) && _previousKeyboardState.IsKeyUp(_controlKeyMap["Go"]))
@@ -87,6 +89,7 @@ namespace BowThrust_MonoGame
             }
 
             //update forward pos
+            Vector2 newPosition = _position;
             if (_currentSpeed > 0)
             {
                 float deltaX = (float)Math.Cos(_rotation) * _currentSpeed * deltaTime;
