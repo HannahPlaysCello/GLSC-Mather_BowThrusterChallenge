@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
+using System.Drawing;
 using System.IO;
 
 public class TileMap
@@ -24,6 +25,7 @@ public class TileMap
 
         Width = Map.GetLength(1);
         Height = Map.GetLength(0); 
+
     }
 
     public void LoadContent(Texture2D waterTexture, Texture2D landTexture)
@@ -32,18 +34,25 @@ public class TileMap
         _landTexture = landTexture;
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+public void Draw(SpriteBatch spriteBatch)
+{
+    for (int row = 0; row < Height; row++)
     {
-        for (int row = 0; row < Height; row++)
+        for (int col = 0; col < Width; col++)
         {
-            for (int col = 0; col < Width; col++)
-            {
-                Texture2D texture = (Map[row, col] == 0) ? _waterTexture : _landTexture;
-                Vector2 position = new Vector2(col * TileSize, row * TileSize);
-                spriteBatch.Draw(texture, position, Color.White);
-            }
+            Texture2D texture = (Map[row, col] == 0) ? _waterTexture : _landTexture;
+
+            //calculate position based on tile size
+            float scale = (float)TileSize / 64f; // If TileSize is 64, then scale = 2
+            Vector2 position = new Vector2(col * TileSize, row * TileSize);
+            spriteBatch.Draw(texture, position, null, Microsoft.Xna.Framework.Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+
+            
+            
+            //spriteBatch.Draw(texture, position, Microsoft.Xna.Framework.Color.White);
         }
     }
+}
 
     private int[,] ConvertTo2DArray(int[][] jaggedArray)
     {

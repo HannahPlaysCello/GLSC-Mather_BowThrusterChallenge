@@ -182,6 +182,9 @@ public class Game1 : Game
         _waterTexture = Content.Load<Texture2D>("BlueWater"); 
         _landTexture = Content.Load<Texture2D>("GreenLand"); 
 
+        //_tileMap.LoadContent(_waterTexture, _landTexture);
+        _tileMap = new TileMap();
+        _tileMap.LoadFromJson("Content/TileMap.json"); // Ensure correct path
         _tileMap.LoadContent(_waterTexture, _landTexture);
 
     }
