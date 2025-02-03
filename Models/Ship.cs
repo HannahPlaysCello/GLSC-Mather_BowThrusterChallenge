@@ -99,6 +99,31 @@ namespace BowThrust_MonoGame
             }
 
             //make whole sprite collide based on sprite tile size
+            //rudder rotation accel/decel
+            if (keyboardState.IsKeyDown(_controlKeyMap["RudderLeft"]))
+            {
+                _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnAccelerationRate * deltaTime, -_maxTurnSpeed);
+            }
+            else if (keyboardState.IsKeyDown(_controlKeyMap["RudderRight"]))
+            {
+                _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnAccelerationRate * deltaTime, _maxTurnSpeed);
+            }
+            else
+            {
+                // Decelerate turning speed
+                if (_currentTurnSpeed > 0)
+                {
+                    _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnDecelerationRate * deltaTime, 0);
+                }
+                else if (_currentTurnSpeed < 0)
+                {
+                    _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnDecelerationRate * deltaTime, 0);
+                }
+            }
+
+            float newRotation = _rotation + _currentTurnSpeed * deltaTime;
+
+            
             //sprite front
             float frontOffsetX = (float)Math.Cos(_rotation) * (_frameWidth * 1.0f);
             float frontOffsetY = (float)Math.Sin(_rotation) * (_frameHeight * 1.0f);
@@ -134,35 +159,10 @@ namespace BowThrust_MonoGame
                     tileMap.Map[tileSideLeftY, tileSideLeftX] != 1 && 
                     tileMap.Map[tileSideRightY, tileSideRightX] != 1) //only allow movement if tile is passable
                 {
-                    _position = newPosition; 
+                    _position = newPosition;
+                    _rotation = newRotation;  //add this to stop it from clipping into "1"s when turning
                 }
             }
-
-
-            //turning accel/decel
-            if (keyboardState.IsKeyDown(_controlKeyMap["RudderLeft"]))
-            {
-                _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnAccelerationRate * deltaTime, -_maxTurnSpeed);
-            }
-            else if (keyboardState.IsKeyDown(_controlKeyMap["RudderRight"]))
-            {
-                _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnAccelerationRate * deltaTime, _maxTurnSpeed);
-            }
-            else
-            {
-                //decel turning speed
-                if (_currentTurnSpeed > 0)
-                {
-                    _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnDecelerationRate * deltaTime, 0);
-                }
-                else if (_currentTurnSpeed < 0)
-                {
-                    _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnDecelerationRate * deltaTime, 0);
-                }
-            }
-
-            //update rotation based on current turn speed
-            _rotation += _currentTurnSpeed * deltaTime;
 
            
             //boundary conditions

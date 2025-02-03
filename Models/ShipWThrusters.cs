@@ -99,6 +99,62 @@ namespace BowThrust_MonoGame
                 newPosition.Y += deltaY;
             }
 
+            //thrusters
+            if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
+            {
+                _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterAcceleration * deltaTime, -_maxThrusterSpeed);
+            }
+            else if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
+            {
+                _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterAcceleration * deltaTime, _maxThrusterSpeed);
+            }
+            else
+            {
+                //decelerate
+                if (_currentThrusterSpeed > 0)
+                {
+                    _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterDeceleration * deltaTime, 0);
+                }
+                else if (_currentThrusterSpeed < 0)
+                {
+                    _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterDeceleration * deltaTime, 0);
+                }
+            }
+
+            //move perpendicular
+            if (_currentThrusterSpeed != 0)
+            {
+                float sideDeltaX = (float)Math.Cos(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
+                float sideDeltaY = (float)Math.Sin(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
+
+                newPosition.X += sideDeltaX;
+                newPosition.Y += sideDeltaY;
+            }
+
+            //turning accel
+            if (keyboardState.IsKeyDown(_controlKeyMap["RudderLeft"]))
+            {
+                _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnAccelerationRate * deltaTime, -_maxTurnSpeed);
+            }
+            else if (keyboardState.IsKeyDown(_controlKeyMap["RudderRight"]))
+            {
+                _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnAccelerationRate * deltaTime, _maxTurnSpeed);
+            }
+            else
+            {
+                if (_currentTurnSpeed > 0)
+                {
+                    _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnDecelerationRate * deltaTime, 0);
+                }
+                else if (_currentTurnSpeed < 0)
+                {
+                    _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnDecelerationRate * deltaTime, 0);
+                }
+            }
+
+            float newRotation = _rotation + _currentTurnSpeed * deltaTime;
+
+
             //sprite front
             float frontOffsetX = (float)Math.Cos(_rotation) * (_frameWidth * 1.0f);
             float frontOffsetY = (float)Math.Sin(_rotation) * (_frameHeight * 1.0f);
@@ -135,64 +191,8 @@ namespace BowThrust_MonoGame
                     tileMap.Map[tileSideRightY, tileSideRightX] != 1) //only allow movement if tile is passable
                 {
                     _position = newPosition; 
+                    _rotation = newRotation;
                 }
-            }
-
-
-            // Turning acceleration/deceleration
-            if (keyboardState.IsKeyDown(_controlKeyMap["RudderLeft"]))
-            {
-                _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnAccelerationRate * deltaTime, -_maxTurnSpeed);
-            }
-            else if (keyboardState.IsKeyDown(_controlKeyMap["RudderRight"]))
-            {
-                _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnAccelerationRate * deltaTime, _maxTurnSpeed);
-            }
-            else
-            {
-                if (_currentTurnSpeed > 0)
-                {
-                    _currentTurnSpeed = Math.Max(_currentTurnSpeed - _turnDecelerationRate * deltaTime, 0);
-                }
-                else if (_currentTurnSpeed < 0)
-                {
-                    _currentTurnSpeed = Math.Min(_currentTurnSpeed + _turnDecelerationRate * deltaTime, 0);
-                }
-            }
-
-            // Update rotation based on current turn speed
-            _rotation += _currentTurnSpeed * deltaTime;
-
-            // THRUSTER STUFF
-            if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
-            {
-                _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterAcceleration * deltaTime, -_maxThrusterSpeed);
-            }
-            else if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
-            {
-                _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterAcceleration * deltaTime, _maxThrusterSpeed);
-            }
-            else
-            {
-                // Decelerate thrusters
-                if (_currentThrusterSpeed > 0)
-                {
-                    _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterDeceleration * deltaTime, 0);
-                }
-                else if (_currentThrusterSpeed < 0)
-                {
-                    _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterDeceleration * deltaTime, 0);
-                }
-            }
-
-            // THRUSTER STUFF : movement PERPENDICULAR to direction
-            if (_currentThrusterSpeed != 0)
-            {
-                float sideDeltaX = (float)Math.Cos(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
-                float sideDeltaY = (float)Math.Sin(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
-
-                _position.X += sideDeltaX;
-                _position.Y += sideDeltaY;
             }
 
             // Boundary conditions
