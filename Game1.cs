@@ -159,7 +159,7 @@ public class Game1 : Game
                 A = 255  // Default to fully opaque blue
             },
 
-            Controls = new ControlSettings //fill these out!!!!!!!!!!
+            Controls = new ControlSettings //fill these out!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             {
                 Go = "Space", 
                 RudderLeft = "A", 
@@ -176,7 +176,7 @@ public class Game1 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         //boat texture (boat sprite sheet) from ship.cs
-        _boatTexture = Content.Load<Texture2D>("MatherV2"); 
+        _boatTexture = Content.Load<Texture2D>("MatherV2-NoBack-WithCorners"); 
         _font = Content.Load<SpriteFont>("MenuFont");
 
         _waterTexture = Content.Load<Texture2D>("BlueWater"); 
@@ -249,7 +249,7 @@ public class Game1 : Game
 
             // Update the selected ship
             if (_useThrusters && _shipWThrusters != null)
-                _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap);
+                _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
             else if (!_useThrusters && _ship !=null)
                 _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
         }
@@ -280,7 +280,7 @@ public class Game1 : Game
         }
         else if (_currentState == GameState.Playing)
         {
-            
+                        
             //draw the background
             _tileMap.Draw(_spriteBatch);            
             

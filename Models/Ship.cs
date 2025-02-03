@@ -70,7 +70,6 @@ namespace BowThrust_MonoGame
         public void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap, TileMap tileMap)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            
 
             //toggle for forward motion
             if (keyboardState.IsKeyDown(_controlKeyMap["Go"]) && _previousKeyboardState.IsKeyUp(_controlKeyMap["Go"]))
@@ -88,16 +87,57 @@ namespace BowThrust_MonoGame
                 _currentSpeed = Math.Max(_currentSpeed - _decelerationRate * deltaTime, 0);
             }
 
-            //update forward pos
+            //calculate forward pos
             Vector2 newPosition = _position;
             if (_currentSpeed > 0)
             {
                 float deltaX = (float)Math.Cos(_rotation) * _currentSpeed * deltaTime;
                 float deltaY = (float)Math.Sin(_rotation) * _currentSpeed * deltaTime;
 
-                _position.X += deltaX;
-                _position.Y += deltaY;
+                newPosition.X += deltaX;
+                newPosition.Y += deltaY;
             }
+
+            //make whole sprite collide based on sprite tile size
+            //sprite front
+            float frontOffsetX = (float)Math.Cos(_rotation) * (_frameWidth * 1.0f);
+            float frontOffsetY = (float)Math.Sin(_rotation) * (_frameHeight * 1.0f);
+
+            //sprite sides
+            float sideOffsetX = (float)Math.Sin(_rotation) * (_frameWidth * 0.6f);
+            float sideOffsetY = (float)Math.Cos(_rotation) * (_frameHeight * 0.6f);
+
+            //front
+            Vector2 frontPosition = new Vector2(newPosition.X + frontOffsetX, newPosition.Y + frontOffsetY);
+            
+            //sides
+            Vector2 sideLeftPosition = new Vector2(newPosition.X + frontOffsetX - sideOffsetX, newPosition.Y + frontOffsetY - sideOffsetY);
+            Vector2 sideRightPosition = new Vector2(newPosition.X + frontOffsetX + sideOffsetX, newPosition.Y + frontOffsetY + sideOffsetY);
+
+            //tile coords
+            int tileFrontX = (int)(frontPosition.X / tileMap.TileSize);
+            int tileFrontY = (int)(frontPosition.Y / tileMap.TileSize);
+
+            int tileSideLeftX = (int)(sideLeftPosition.X / tileMap.TileSize);
+            int tileSideLeftY = (int)(sideLeftPosition.Y / tileMap.TileSize);
+
+            int tileSideRightX = (int)(sideRightPosition.X / tileMap.TileSize);
+            int tileSideRightY = (int)(sideRightPosition.Y / tileMap.TileSize);
+
+            //check bounds ALL DIMENSIONS
+            if (tileFrontX >= 0 && tileFrontX < tileMap.Width && tileFrontY >= 0 && tileFrontY < tileMap.Height &&
+                tileSideLeftX >= 0 && tileSideLeftX < tileMap.Width && tileSideLeftY >= 0 && tileSideLeftY < tileMap.Height &&
+                tileSideRightX >= 0 && tileSideRightX < tileMap.Width && tileSideRightY >= 0 && tileSideRightY < tileMap.Height)
+            {
+                //check if tile is passible for ALL CORNERS
+                if (tileMap.Map[tileFrontY, tileFrontX] != 1 && 
+                    tileMap.Map[tileSideLeftY, tileSideLeftX] != 1 && 
+                    tileMap.Map[tileSideRightY, tileSideRightX] != 1) //only allow movement if tile is passable
+                {
+                    _position = newPosition; 
+                }
+            }
+
 
             //turning accel/decel
             if (keyboardState.IsKeyDown(_controlKeyMap["RudderLeft"]))
@@ -160,8 +200,6 @@ namespace BowThrust_MonoGame
 
             //draw the damn boat please
             spriteBatch.Draw(_boatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
-        
-        
         }
     }
 }

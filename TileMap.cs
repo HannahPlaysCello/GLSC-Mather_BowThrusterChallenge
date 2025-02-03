@@ -46,10 +46,6 @@ public void Draw(SpriteBatch spriteBatch)
             float scale = (float)TileSize / 64f; // If TileSize is 64, then scale = 2
             Vector2 position = new Vector2(col * TileSize, row * TileSize);
             spriteBatch.Draw(texture, position, null, Microsoft.Xna.Framework.Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
-
-            
-            
-            //spriteBatch.Draw(texture, position, Microsoft.Xna.Framework.Color.White);
         }
     }
 }
