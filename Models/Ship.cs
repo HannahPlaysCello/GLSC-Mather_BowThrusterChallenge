@@ -104,8 +104,8 @@ namespace BowThrust_MonoGame
             float frontOffsetY = (float)Math.Sin(_rotation) * (_frameHeight * 1.0f);
 
             //sprite sides
-            float sideOffsetX = (float)Math.Sin(_rotation) * (_frameWidth * 0.6f);
-            float sideOffsetY = (float)Math.Cos(_rotation) * (_frameHeight * 0.6f);
+            float sideOffsetX = (float)Math.Sin(_rotation) * (_frameWidth * 0.25f);
+            float sideOffsetY = (float)Math.Cos(_rotation) * (_frameHeight * 0.25f);
 
             //front
             Vector2 frontPosition = new Vector2(newPosition.X + frontOffsetX, newPosition.Y + frontOffsetY);

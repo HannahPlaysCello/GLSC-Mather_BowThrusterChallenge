@@ -1,0 +1,14 @@
+[
+    {
+        "TileID": 0,
+        "IsPassable": true,
+        "Texture": "BlueWater.png",
+        "Description": "Blue water tile"
+    },
+    {
+        "TileID": 1,
+        "IsPassable": false,
+        "Texture": "GreenLand.png",
+        "Description": "Green land tile"
+    }
+]
