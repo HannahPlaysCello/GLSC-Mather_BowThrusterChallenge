@@ -33,8 +33,6 @@ public class Game1 : Game
     private Dictionary<String, Keys> _controlKeyMap;
 
     private TileMap _tileMap;
-    private Texture2D _waterTexture;
-    private Texture2D _landTexture;
 
  
 
@@ -64,6 +62,7 @@ public class Game1 : Game
         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
 
         _tileMap = new TileMap();
+        _tileMap.LoadFromJson(Content, "Content/tilemap.json", "Content/Tiles.json", 64);
         
         base.Initialize();
 
@@ -179,13 +178,6 @@ public class Game1 : Game
         _boatTexture = Content.Load<Texture2D>("MatherV2-NoBack-WithCorners"); 
         _font = Content.Load<SpriteFont>("MenuFont");
 
-        _waterTexture = Content.Load<Texture2D>("BlueWater"); 
-        _landTexture = Content.Load<Texture2D>("GreenLand"); 
-
-        _tileMap = new TileMap();
-        _tileMap.LoadFromJson("Content/TileMap.json"); // Ensure correct path
-        _tileMap.LoadContent(_waterTexture, _landTexture);
-
     }
 
     //
@@ -263,6 +255,26 @@ public class Game1 : Game
         GraphicsDevice.Clear(_backgroundColor);
 
         _spriteBatch.Begin();
+
+        if (_currentState == GameState.Playing)
+        {
+            for (int y = 0; y < _tileMap.Height; y++)
+            {
+                for (int x = 0; x < _tileMap.Width; x++)
+                {
+                    int tileID = _tileMap.Map[y, x];
+                    Tiles tile = _tileMap.GetTile(tileID);
+
+                    _spriteBatch.Draw(tile.TileTexture, new Vector2(x * _tileMap.TileSize, y * _tileMap.TileSize), Color.White);
+                }
+            }
+        }
+        else if (_currentState == GameState.Menu)
+        {
+            GraphicsDevice.Clear(Color.Blue);
+        }
+
+        
 
         if (_currentState == GameState.Menu)
         {

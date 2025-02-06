@@ -98,6 +98,7 @@ namespace BowThrust_MonoGame
                 newPosition.Y += deltaY;
             }
 
+            /*
             //make whole sprite collide based on sprite tile size
             //sprite front
             float frontOffsetX = (float)Math.Cos(_rotation) * (_frameWidth * 1.0f);
@@ -136,6 +137,36 @@ namespace BowThrust_MonoGame
                 {
                     _position = newPosition; 
                 }
+            }*/
+
+            // Calculate the forward offset (front of the ship)
+            float frontOffsetX = (float)Math.Cos(_rotation) * (_frameWidth * 1.0f);
+            float frontOffsetY = (float)Math.Sin(_rotation) * (_frameHeight * 1.0f);
+
+            // Calculate the side offsets (sides of the ship)
+            float sideOffsetX = (float)Math.Sin(_rotation) * (_frameWidth * 0.25f);
+            float sideOffsetY = (float)Math.Cos(_rotation) * (_frameHeight * 0.25f);
+
+            // Calculate the front, left, and right collision points
+            Vector2 frontPosition = new Vector2(newPosition.X + frontOffsetX, newPosition.Y + frontOffsetY);
+            Vector2 sideLeftPosition = new Vector2(newPosition.X + frontOffsetX - sideOffsetX, newPosition.Y + frontOffsetY - sideOffsetY);
+            Vector2 sideRightPosition = new Vector2(newPosition.X + frontOffsetX + sideOffsetX, newPosition.Y + frontOffsetY + sideOffsetY);
+
+            // Check collisions at all key points (front, left, right)
+            bool collisionAtFront = tileMap.IsCollisionTile(frontPosition);
+            bool collisionAtLeft = tileMap.IsCollisionTile(sideLeftPosition);
+            bool collisionAtRight = tileMap.IsCollisionTile(sideRightPosition);
+
+
+
+            //check if new position collides with nonpassable tile
+            if (!collisionAtFront && !collisionAtLeft && !collisionAtRight)
+            {
+                _position = newPosition;  //move the ship if there's no collision
+            }
+            else
+            {
+                _currentSpeed = 0;  //stop movement if a collision is detected
             }
 
 
