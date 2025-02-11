@@ -34,6 +34,8 @@ public class Game1 : Game
 
     private TileMap _tileMap;
 
+    private ScoreManager scoreManager;
+
  
 
     //game setup
@@ -178,6 +180,8 @@ public class Game1 : Game
         _boatTexture = Content.Load<Texture2D>("MatherV2-NoBack-WithCorners"); 
         _font = Content.Load<SpriteFont>("MenuFont");
 
+        scoreManager = new ScoreManager(_font);
+
     }
 
     //
@@ -192,12 +196,12 @@ public class Game1 : Game
         {
             if (keyboardState.IsKeyDown(_controlKeyMap["MenuUp"]) && !_isKeyPressed)
             {
-                _selectedOption = 0;  // Normal Mode
+                _selectedOption = 0;  //normal Mode
                 _isKeyPressed = true;
             }
             if (keyboardState.IsKeyDown(_controlKeyMap["MenuDown"]) && !_isKeyPressed)
             {
-                _selectedOption = 1;  // Thruster Mode
+                _selectedOption = 1;  //thruster Mode
                 _isKeyPressed = true;
             }  
         
