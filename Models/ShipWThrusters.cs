@@ -191,8 +191,22 @@ namespace BowThrust_MonoGame
                 float sideDeltaX = (float)Math.Cos(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
                 float sideDeltaY = (float)Math.Sin(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime;
 
-                _position.X += sideDeltaX;
-                _position.Y += sideDeltaY;
+                float collisionOffset = _frameWidth * 0.25f; //<-adjsut this value to change where in the sprite the thrusters start blocking
+                Vector2 thrusterCollisionCheckPosition = new Vector2(
+                    _position.X + sideDeltaX + (float)Math.Cos(_rotation + MathHelper.PiOver2) * collisionOffset,
+                    _position.Y + sideDeltaY + (float)Math.Sin(_rotation + MathHelper.PiOver2) * collisionOffset
+                );
+
+                //check for collisions before applying the thruster movement
+                if (!tileMap.IsCollisionTile(thrusterCollisionCheckPosition))
+                {
+                    _position.X += sideDeltaX;
+                    _position.Y += sideDeltaY;
+                }
+                else
+                {
+                    _currentThrusterSpeed = 0;  //stop thruster movement if collision detected
+                }
             }
 
             // Boundary conditions
