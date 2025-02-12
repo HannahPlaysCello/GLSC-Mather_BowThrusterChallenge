@@ -9,10 +9,19 @@ namespace BowThrust_MonoGame
     //base class for all ships
     public abstract class ShipBase
     {
+        //temporary debug
+        protected Texture2D _debugTexture;
+
+
+        //permanent starts here
         protected Texture2D _boatTexture;
         protected Vector2 _position;  //ship position
         protected Vector2 _origin;    //for rotation (gotta seperate this into two things, one for rotation, one for position on the screen)
 
+        //hitbox!
+        protected Rectangle _hitbox;
+        public Rectangle Hitbox => _hitbox;
+        
         //for boundary manager
         protected int _screenWidth;
         protected int _screenHeight;
@@ -54,14 +63,24 @@ namespace BowThrust_MonoGame
             _rotation = 0f;
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
+
+            //hitbox
+            int hitboxWidth = 160; // the sprite is 160 x 160 
+            int hitboxHeight = 60; //only covers the boat shape, not empty space hopefully! 
+            _hitbox = new Rectangle((int)_position.X - hitboxWidth / 2 + 157, (int)_position.Y - hitboxHeight / 2, hitboxWidth, hitboxHeight);
+
         }
 
         //loat boat texture/sprite sheet setup
-        public void LoadContent(Texture2D boatTexture)
+        public void LoadContent(Texture2D boatTexture, GraphicsDevice graphicsDevice)
         {
             _boatTexture = boatTexture;
             _sourceRectangle = new Rectangle(0, 0, _frameWidth, _frameHeight);
             _origin = new Vector2(_boatTexture.Width / 100, _boatTexture.Height / 4);
+
+            //temporary rectangle for debug
+            _debugTexture = new Texture2D(graphicsDevice, 1, 1);
+            _debugTexture.SetData(new[] { Color.White });
         }
 
         //movement and animation
@@ -155,6 +174,12 @@ namespace BowThrust_MonoGame
         {
             float scale = 1f;
             spriteBatch.Draw(_boatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
+        
+            //temporary draw hitbox for debug
+            spriteBatch.Draw(_debugTexture, new Rectangle(_hitbox.X, _hitbox.Y, _hitbox.Width, _hitbox.Height), Color.Red * 0.5f);
+
+        
+        
         }
     }
 }

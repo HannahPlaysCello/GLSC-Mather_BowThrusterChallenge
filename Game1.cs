@@ -7,6 +7,7 @@ using System.Text.Json;
 using BowThrusterChallenge.Settings;
 using System;
 using System.Collections.Generic;
+//using System.Drawing;
 
 namespace BowThrust_MonoGame;
 
@@ -28,7 +29,7 @@ public class Game1 : Game
     private bool _useThrusters = false;
     private Texture2D _boatTexture;
 
-    private Color _backgroundColor;
+    private Microsoft.Xna.Framework.Color _backgroundColor;
 
     private Dictionary<String, Keys> _controlKeyMap;
 
@@ -47,11 +48,9 @@ public class Game1 : Game
 
         // window setup
         Window.AllowUserResizing = false;
-        Window.Position = new Point(0, 0); // why does this not go to the top-left corner lol
-
+        Window.Position = new Microsoft.Xna.Framework.Point(0, 0); // why does this not go to the top-left corner lol
     }
 
-    //
     protected override void Initialize()
     {
         LoadSettings();
@@ -94,7 +93,7 @@ public class Game1 : Game
         Window.Title = _settings.Window.Title; 
 
         //apply background color from JSON
-        _backgroundColor = new Color(
+        _backgroundColor = new Microsoft.Xna.Framework.Color(
             _settings.BackgroundColor.R, 
             _settings.BackgroundColor.G, 
             _settings.BackgroundColor.B, 
@@ -115,7 +114,6 @@ public class Game1 : Game
             { "MenuUp", ParseKeyFromString(_settings.Controls.MenuUp) },
             { "MenuDown", ParseKeyFromString(_settings.Controls.MenuDown) }
         };
-
 
         }
         catch (Exception ex)
@@ -140,7 +138,7 @@ public class Game1 : Game
             return Keys.None;
         }
     }
-    
+
     //if missing/error with config
     private void SetDefaultSettings()
     {
@@ -223,9 +221,9 @@ public class Game1 : Game
 
                 // Load texture into ship
                 if (_useThrusters)
-                    _shipWThrusters.LoadContent(_boatTexture);
+                    _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
                 else
-                    _ship.LoadContent(_boatTexture);
+                    _ship.LoadContent(_boatTexture, GraphicsDevice);
 
                 _currentState = GameState.Playing;
             }
@@ -269,13 +267,13 @@ public class Game1 : Game
                     int tileID = _tileMap.Map[y, x];
                     Tiles tile = _tileMap.GetTile(tileID);
 
-                    _spriteBatch.Draw(tile.TileTexture, new Vector2(x * _tileMap.TileSize, y * _tileMap.TileSize), Color.White);
+                    _spriteBatch.Draw(tile.TileTexture, new Vector2(x * _tileMap.TileSize, y * _tileMap.TileSize), Microsoft.Xna.Framework.Color.White);
                 }
             }
         }
         else if (_currentState == GameState.Menu)
         {
-            GraphicsDevice.Clear(Color.Blue);
+            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
         }
 
         
@@ -285,13 +283,13 @@ public class Game1 : Game
             // Draw menu options
             string option1 = "Normal Mode";
             string option2 = "Thruster Mode";
-            Color option1Color = (_selectedOption == 0) ? Color.Yellow : Color.White;
-            Color option2Color = (_selectedOption == 1) ? Color.Yellow : Color.White;
+            Microsoft.Xna.Framework.Color option1Color = (_selectedOption == 0) ? Microsoft.Xna.Framework.Color.Yellow : Microsoft.Xna.Framework.Color.White;
+            Microsoft.Xna.Framework.Color option2Color = (_selectedOption == 1) ? Microsoft.Xna.Framework.Color.Yellow : Microsoft.Xna.Framework.Color.White;
 
-            _spriteBatch.DrawString(_font, "Choose Boat Mode:", new Vector2(300, 200), Color.White);
+            _spriteBatch.DrawString(_font, "Choose Boat Mode:", new Vector2(300, 200), Microsoft.Xna.Framework.Color.White);
             _spriteBatch.DrawString(_font, option1, new Vector2(300, 300), option1Color);
             _spriteBatch.DrawString(_font, option2, new Vector2(300, 350), option2Color);
-            _spriteBatch.DrawString(_font, "Press ENTER to select", new Vector2(300, 450), Color.Gray);
+            _spriteBatch.DrawString(_font, "Press ENTER to select", new Vector2(300, 450), Microsoft.Xna.Framework.Color.Gray);
         }
         else if (_currentState == GameState.Playing)
         {
@@ -328,10 +326,9 @@ public class Game1 : Game
             Vector2 controlsPosition2 = new Vector2(screenWidth - controlsText2Size.X - 10, controlsPosition1.Y - controlsText2Size.Y - 5);
             
             //draw instructions
-            _spriteBatch.DrawString(_font, menuText, menuPosition, Color.LightGray);
-            _spriteBatch.DrawString(_font, controlsText1, controlsPosition1, Color.LightGray);
-            _spriteBatch.DrawString(_font, controlsText2, controlsPosition2, Color.LightGray);
-
+            _spriteBatch.DrawString(_font, menuText, menuPosition, Microsoft.Xna.Framework.Color.LightGray);
+            _spriteBatch.DrawString(_font, controlsText1, controlsPosition1, Microsoft.Xna.Framework.Color.LightGray);
+            _spriteBatch.DrawString(_font, controlsText2, controlsPosition2, Microsoft.Xna.Framework.Color.LightGray);
         }
          
         _spriteBatch.End();
