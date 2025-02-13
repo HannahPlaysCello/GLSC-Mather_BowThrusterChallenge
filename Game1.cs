@@ -59,9 +59,12 @@ public class Game1 : Game
         int screenHeight = _graphics.PreferredBackBufferHeight;
         
         // ship placement on screen
-        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
+        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight); //this should control ship placement on the screen but it appears not to at the moment.
         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
 
+        Console.WriteLine($"Initial Ship Position: {_ship.Position}");
+        Console.WriteLine($"Initial ShipWThrusters Position: {_shipWThrusters.Position}");
+        
         _tileMap = new TileMap();
         _tileMap.LoadFromJson(Content, "Content/tilemap.json", "Content/Tiles.json", 64);
         

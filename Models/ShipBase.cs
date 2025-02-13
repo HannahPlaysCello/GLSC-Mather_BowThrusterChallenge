@@ -9,19 +9,18 @@ namespace BowThrust_MonoGame
     //base class for all ships
     public abstract class ShipBase
     {
-        //temporary debug
-        protected Texture2D _debugTexture;
-
+        //temporary debug for hitbox
+        protected Texture2D _pixelTexture;
 
         //permanent starts here
         protected Texture2D _boatTexture;
         protected Vector2 _position;  //ship position
-        protected Vector2 _origin;    //for rotation (gotta seperate this into two things, one for rotation, one for position on the screen)
+        protected Vector2 _origin;    //what boat rotates around :)
 
         //hitbox!
-        protected Rectangle _hitbox;
-        public Rectangle Hitbox => _hitbox;
-        
+        protected Vector2[] _hitboxCorners = new Vector2[4]; //:)))))))))))))
+
+        //this needs work
         //for boundary manager
         protected int _screenWidth;
         protected int _screenHeight;
@@ -54,6 +53,7 @@ namespace BowThrust_MonoGame
         protected bool _isMovingForward = false;
         protected KeyboardState _previousKeyboardState;
 
+        //where the boat appears on the screen
         public Vector2 Position { get => _position; set => _position = value; }
 
         //Constructor
@@ -64,26 +64,21 @@ namespace BowThrust_MonoGame
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
 
-            //hitbox
-            int hitboxWidth = 160; // the sprite is 160 x 160 
-            int hitboxHeight = 60; //only covers the boat shape, not empty space hopefully! 
-            _hitbox = new Rectangle((int)_position.X - hitboxWidth / 2 + 157, (int)_position.Y - hitboxHeight / 2, hitboxWidth, hitboxHeight);
-
+            _origin = new Vector2(0, _frameWidth / 2);
         }
 
-        //loat boat texture/sprite sheet setup
+        //boat texture/sprite sheet setup
         public void LoadContent(Texture2D boatTexture, GraphicsDevice graphicsDevice)
         {
             _boatTexture = boatTexture;
             _sourceRectangle = new Rectangle(0, 0, _frameWidth, _frameHeight);
-            _origin = new Vector2(_boatTexture.Width / 100, _boatTexture.Height / 4);
-
+            
             //temporary rectangle for debug
-            _debugTexture = new Texture2D(graphicsDevice, 1, 1);
-            _debugTexture.SetData(new[] { Color.White });
+            _pixelTexture = new Texture2D(graphicsDevice, 1, 1);
+            _pixelTexture.SetData(new[] { Color.White });
         }
 
-        //movement and animation
+        //move the ship based on helper classes
         public virtual void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap, TileMap tileMap)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -95,18 +90,45 @@ namespace BowThrust_MonoGame
             HandleForwardMovement(deltaTime);
             HandleTurning(keyboardState, deltaTime, _controlKeyMap);
 
-            // calculate new position and check for collisions
+            // calculate new position but stop if collision
             Vector2 newPosition = CalculateNewPosition(deltaTime);
-            HandleCollisions(newPosition, tileMap);
+            if (!IsCollisionAtPosition(newPosition, tileMap))
+            {
+                _position = newPosition; 
+            }
+            else
+            {
+                _currentSpeed = 0; //stof if collision!
+            }
 
             //keep ship within screen boundaries!
-            _position = BoundaryManager.ClampToBounds(_position, _screenWidth, _screenHeight, _frameWidth * 0.5f, _frameHeight * 0.5f);
+            _position = BoundaryManager.ClampToBounds(_position, _screenWidth, _screenHeight, _frameWidth, _frameHeight);
+
+            //update hitbox
+            Vector2 hitboxCenter = _position; // Adjust based on sprite shape
+            float Width = _frameWidth;
+            float halfHeight = _frameHeight / 5;
+
+            // Define the four corners BEFORE rotation
+            Vector2 topLeft = new Vector2(0, -halfHeight);
+            Vector2 topRight = new Vector2(Width, -halfHeight);
+            Vector2 bottomLeft = new Vector2(0, halfHeight);
+            Vector2 bottomRight = new Vector2(Width, halfHeight);
+
+            // Rotate each point around the hitbox center
+            Matrix rotationMatrix = Matrix.CreateRotationZ(_rotation);
+            _hitboxCorners[0] = Vector2.Transform(topLeft, rotationMatrix) + hitboxCenter;
+            _hitboxCorners[1] = Vector2.Transform(topRight, rotationMatrix) + hitboxCenter;
+            _hitboxCorners[2] = Vector2.Transform(bottomLeft, rotationMatrix) + hitboxCenter;
+            _hitboxCorners[3] = Vector2.Transform(bottomRight, rotationMatrix) + hitboxCenter;
 
             //update animation frames
             UpdateAnimation(gameTime);
 
             //have to store previous key state for toggling
             _previousKeyboardState = keyboardState;
+
+            Console.WriteLine($"Ship Position in Update: {_position}");
         }
 
         //forward acceleration and deceleration
@@ -147,12 +169,16 @@ namespace BowThrust_MonoGame
         }
 
         //stop if collided
-        protected void HandleCollisions(Vector2 newPosition, TileMap tileMap)
+        protected bool IsCollisionAtPosition(Vector2 testPosition, TileMap tileMap)
         {
-            if (!tileMap.IsCollisionTile(newPosition))
-                _position = newPosition;
-            else
-                _currentSpeed = 0;
+            foreach (Vector2 corner in _hitboxCorners)
+            {
+                if (tileMap.IsCollisionTile(corner))
+                {
+                    return true; // Collision detected
+                }
+            }
+            return false; // No collision
         }
 
         //sprite sheet animation
@@ -169,6 +195,19 @@ namespace BowThrust_MonoGame
             }
         }
 
+        //temporary for debugging the hitbox! 
+        private void DrawLine(SpriteBatch spriteBatch, Vector2 start, Vector2 end, Color color)
+        {
+            Vector2 edge = end - start;
+            float angle = (float)Math.Atan2(edge.Y, edge.X);
+
+
+            spriteBatch.Draw(_pixelTexture, new Rectangle((int)start.X, (int)start.Y, (int)edge.Length(), 1), null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
+        }
+
+
+
+
         //draw sprite :)
         public void Draw(SpriteBatch spriteBatch)
         {
@@ -176,10 +215,13 @@ namespace BowThrust_MonoGame
             spriteBatch.Draw(_boatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
         
             //temporary draw hitbox for debug
-            spriteBatch.Draw(_debugTexture, new Rectangle(_hitbox.X, _hitbox.Y, _hitbox.Width, _hitbox.Height), Color.Red * 0.5f);
+            for (int i = 0; i < 4; i++)
+            {
+                Vector2 start = _hitboxCorners[i];
+                Vector2 end = _hitboxCorners[(i + 1) % 4]; // Connect to the next point
 
-        
-        
+                DrawLine(spriteBatch, start, end, Color.Red);
+            }
         }
     }
 }
