@@ -17,6 +17,9 @@ namespace BowThrust_MonoGame
         protected Vector2 _position;  //ship position
         protected Vector2 _origin;    //what boat rotates around :)
 
+        //score manager
+        protected ScoreManager _scoreManager;
+
         //hitbox!
         protected Vector2[] _hitboxCorners = new Vector2[4]; //:)))))))))))))
 
@@ -53,11 +56,15 @@ namespace BowThrust_MonoGame
         protected bool _isMovingForward = false;
         protected KeyboardState _previousKeyboardState;
 
+        //for score tracking
+        private bool _hasStartedMoving = false; //literally just to prevent the score from loading wrong
+        private bool _wasPreviouslyColliding = false; //to prevent score from continually incrementing if boat stays still
+
         //where the boat appears on the screen
         public Vector2 Position { get => _position; set => _position = value; }
 
         //Constructor
-        public ShipBase(Vector2 initialPosition, int screenWidth, int screenHeight)
+        public ShipBase(Vector2 initialPosition, int screenWidth, int screenHeight, ScoreManager scoreManager)
         {
             _position = initialPosition;
             _rotation = 0f;
@@ -65,6 +72,8 @@ namespace BowThrust_MonoGame
             _screenHeight = screenHeight;
 
             _origin = new Vector2(0, _frameWidth / 2);
+
+            _scoreManager = scoreManager;
         }
 
         //boat texture/sprite sheet setup
@@ -85,7 +94,10 @@ namespace BowThrust_MonoGame
 
             //toggle forward movement
             if (keyboardState.IsKeyDown(_controlKeyMap["Go"]) && _previousKeyboardState.IsKeyUp(_controlKeyMap["Go"]))
+            {
                 _isMovingForward = !_isMovingForward;
+                _hasStartedMoving = true;
+            }
 
             HandleForwardMovement(deltaTime);
             HandleTurning(keyboardState, deltaTime, _controlKeyMap);
@@ -171,14 +183,27 @@ namespace BowThrust_MonoGame
         //stop if collided
         protected bool IsCollisionAtPosition(Vector2 testPosition, TileMap tileMap)
         {
+            if (!_hasStartedMoving) //ignore collisions before the boat starts moving
+                return false;
+
+            bool isColliding = false;
+
             foreach (Vector2 corner in _hitboxCorners)
             {
                 if (tileMap.IsCollisionTile(corner))
                 {
-                    return true; // Collision detected
+                    isColliding = true;
+                    break;
                 }
             }
-            return false; // No collision
+
+            if (isColliding && !_wasPreviouslyColliding)
+            {
+                _scoreManager?.AddCollisionPoints();
+            }
+
+            _wasPreviouslyColliding = isColliding;
+            return isColliding;
         }
 
         //sprite sheet animation

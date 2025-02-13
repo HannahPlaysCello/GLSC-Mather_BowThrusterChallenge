@@ -1,29 +1,40 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-public class ScoreManager
+namespace BowThrust_MonoGame
 {
-    public int Score { get; private set; } = 0;
-
-    private SpriteFont font;
-
-    public ScoreManager(SpriteFont font)
+    public class ScoreManager
     {
-        this.font = font;
-    }
+        public int Score { get; private set; } = 0;
+        public int Collisions { get; private set; } = 0;  // Track collisions
 
-    public void AddCollisionPoints(int points = -1)
-    {
-        Score += points;
-    }
+        private SpriteFont font;
 
-    public void ResetScore()
-    {
-        Score = 0;
-    }
+        public ScoreManager(SpriteFont font)
+        {
+            this.font = font;
+            //Score = 1; //temporary hack because it starts on teh boundary lol
+            //Collisions = -1;
+        }
 
-    public void Draw(SpriteBatch spriteBatch, Vector2 position)
-    {
-        spriteBatch.DrawString(font, "Score: " + Score, position, Color.White);
+        public void AddCollisionPoints(int points = -1)
+        {
+            Score += points;
+            Collisions++;  // Increment collision counter
+        }
+
+        public void ResetScore()
+        {
+            Score = 0;
+            Collisions = 0;  // Reset collision count
+        }
+
+        public void Draw(SpriteBatch spriteBatch, Vector2 scorePosition, Vector2 collisionPosition)
+        {
+            //spriteBatch.DrawString(font, "Score: " + Score, scorePosition, Color.White); //
+            spriteBatch.DrawString(font, "Collisions: " + Collisions, collisionPosition, Color.Red);
+        }
     }
 }
+
+

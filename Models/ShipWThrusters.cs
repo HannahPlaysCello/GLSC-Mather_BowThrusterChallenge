@@ -12,8 +12,8 @@ namespace BowThrust_MonoGame
         private const float _thrusterAcceleration = 100f;
         private const float _thrusterDeceleration = 80f;
 
-        public ShipWThrusters(Vector2 initialPosition, int screenWidth, int screenHeight)
-            : base(initialPosition, screenWidth, screenHeight) { }
+        public ShipWThrusters(Vector2 initialPosition, int screenWidth, int screenHeight, ScoreManager scoreManager)
+            : base(initialPosition, screenWidth, screenHeight, scoreManager) { }
 
         //main update loop
         public override void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap, TileMap tileMap)

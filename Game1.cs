@@ -35,7 +35,7 @@ public class Game1 : Game
 
     private TileMap _tileMap;
 
-    private ScoreManager scoreManager;
+    private ScoreManager _scoreManager;
 
  
 
@@ -54,14 +54,14 @@ public class Game1 : Game
     protected override void Initialize()
     {
         LoadSettings();
-        
+
         int screenWidth = _graphics.PreferredBackBufferWidth;
         int screenHeight = _graphics.PreferredBackBufferHeight;
-        
-        // ship placement on screen
-        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight); //this should control ship placement on the screen but it appears not to at the moment.
-        _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
 
+        // ship placement on screen
+        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
+        _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
+        
         Console.WriteLine($"Initial Ship Position: {_ship.Position}");
         Console.WriteLine($"Initial ShipWThrusters Position: {_shipWThrusters.Position}");
         
@@ -181,7 +181,7 @@ public class Game1 : Game
         _boatTexture = Content.Load<Texture2D>("MatherV2-NoBack-WithCorners"); 
         _font = Content.Load<SpriteFont>("MenuFont");
 
-        scoreManager = new ScoreManager(_font);
+        _scoreManager = new ScoreManager(_font);
 
     }
 
@@ -218,9 +218,9 @@ public class Game1 : Game
 
                 // make the correct ship
                 if (_useThrusters)
-                    _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
+                    _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                 else
-                    _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight);
+                    _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
 
                 // Load texture into ship
                 if (_useThrusters)
@@ -279,8 +279,6 @@ public class Game1 : Game
             GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
         }
 
-        
-
         if (_currentState == GameState.Menu)
         {
             // Draw menu options
@@ -296,10 +294,9 @@ public class Game1 : Game
         }
         else if (_currentState == GameState.Playing)
         {
-                        
             //draw the background
-            _tileMap.Draw(_spriteBatch);            
-            
+            _tileMap.Draw(_spriteBatch);
+
             
             //draw the correct ship
             if (_useThrusters && _shipWThrusters != null)
@@ -332,6 +329,14 @@ public class Game1 : Game
             _spriteBatch.DrawString(_font, menuText, menuPosition, Microsoft.Xna.Framework.Color.LightGray);
             _spriteBatch.DrawString(_font, controlsText1, controlsPosition1, Microsoft.Xna.Framework.Color.LightGray);
             _spriteBatch.DrawString(_font, controlsText2, controlsPosition2, Microsoft.Xna.Framework.Color.LightGray);
+
+
+            //position for score counter
+            Vector2 scorePosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, -20); //will figure out how i want to score this later, then move this into the visible area of teh screen lmao!
+            Vector2 collisionPosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, 15);
+
+            //draw collision counter
+            _scoreManager.Draw(_spriteBatch, scorePosition, collisionPosition);
         }
          
         _spriteBatch.End();
