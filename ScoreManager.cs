@@ -13,8 +13,6 @@ namespace BowThrust_MonoGame
         public ScoreManager(SpriteFont font)
         {
             this.font = font;
-            //Score = 1; //temporary hack because it starts on teh boundary lol
-            //Collisions = -1;
         }
 
         public void AddCollisionPoints(int points = -1)

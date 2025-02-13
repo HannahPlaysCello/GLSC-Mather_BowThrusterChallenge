@@ -237,6 +237,7 @@ namespace BowThrust_MonoGame
         public void Draw(SpriteBatch spriteBatch)
         {
             float scale = 1f;
+            //crashes here
             spriteBatch.Draw(_boatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
         
             //temporary draw hitbox for debug

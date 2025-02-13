@@ -17,13 +17,11 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
     private Settings _settings;
 
-    private enum GameState { Menu, Playing }
-    private GameState _currentState = GameState.Menu;
+    private enum GameState { Menu, Playing, GameOver }
+    private GameState _currentState = GameState.Menu; //load menu on start-up
 
     private SpriteFont _font;
-    private int _selectedOption = 0; //0 is normal, 1 is thruster mode
-    private bool _isKeyPressed = false;
-
+    
     private Ship _ship;
     private ShipWThrusters _shipWThrusters;
     private bool _useThrusters = false;
@@ -36,6 +34,8 @@ public class Game1 : Game
     private TileMap _tileMap;
 
     private ScoreManager _scoreManager;
+
+    private MenuManager _menuManager;
 
  
 
@@ -142,7 +142,7 @@ public class Game1 : Game
         }
     }
 
-    //if missing/error with config
+    //if missing/error with config PLEASE FINISH THIS ROUTINE THIS HAS TO HAPPEN SERIOUSLY
     private void SetDefaultSettings()
     {
         _settings = new Settings
@@ -183,6 +183,8 @@ public class Game1 : Game
 
         _scoreManager = new ScoreManager(_font);
 
+        _menuManager = new MenuManager(_font);
+
     }
 
     //
@@ -195,34 +197,21 @@ public class Game1 : Game
 
         if (_currentState == GameState.Menu)
         {
-            if (keyboardState.IsKeyDown(_controlKeyMap["MenuUp"]) && !_isKeyPressed)
-            {
-                _selectedOption = 0;  //normal Mode
-                _isKeyPressed = true;
-            }
-            if (keyboardState.IsKeyDown(_controlKeyMap["MenuDown"]) && !_isKeyPressed)
-            {
-                _selectedOption = 1;  //thruster Mode
-                _isKeyPressed = true;
-            }  
-        
-            if (keyboardState.IsKeyUp(Keys.Up) && keyboardState.IsKeyUp(Keys.Down))
-                _isKeyPressed = false;
+            bool startGame = _menuManager.Update(keyboardState, _controlKeyMap);
 
-            
-            if (keyboardState.IsKeyDown(_controlKeyMap["Select"]))
+            if (startGame)
             {
-                _useThrusters = (_selectedOption == 1);
+                _useThrusters = (_menuManager.GetSelectedOption() == 1);
                 int screenWidth = _graphics.PreferredBackBufferWidth;
                 int screenHeight = _graphics.PreferredBackBufferHeight;
 
-                // make the correct ship
+                //load the correct ship
                 if (_useThrusters)
                     _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                 else
                     _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
 
-                // Load texture into ship
+                //load texture into the ship
                 if (_useThrusters)
                     _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
                 else
@@ -276,9 +265,11 @@ public class Game1 : Game
         }
         else if (_currentState == GameState.Menu)
         {
-            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
+            _menuManager.Draw(_spriteBatch);
+            //GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
         }
 
+        /*
         if (_currentState == GameState.Menu)
         {
             // Draw menu options
@@ -292,6 +283,7 @@ public class Game1 : Game
             _spriteBatch.DrawString(_font, option2, new Vector2(300, 350), option2Color);
             _spriteBatch.DrawString(_font, "Press ENTER to select", new Vector2(300, 450), Microsoft.Xna.Framework.Color.Gray);
         }
+        */
         else if (_currentState == GameState.Playing)
         {
             //draw the background
