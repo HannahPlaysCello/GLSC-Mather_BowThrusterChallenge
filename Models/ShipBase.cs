@@ -128,7 +128,7 @@ namespace BowThrust_MonoGame
             //have to store previous key state for toggling
             _previousKeyboardState = keyboardState;
 
-            Console.WriteLine($"Ship Position in Update: {_position}");
+            //Console.WriteLine($"Ship Position in Update: {_position}");
         }
 
         //forward acceleration and deceleration

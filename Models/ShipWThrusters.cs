@@ -27,21 +27,15 @@ namespace BowThrust_MonoGame
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
-            {
                 _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterAcceleration * deltaTime, -_maxThrusterSpeed);
-                //Console.WriteLine("Left Thruster Activated: " + _currentThrusterSpeed);
-            }
             else if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
-            {
                 _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterAcceleration * deltaTime, _maxThrusterSpeed);
-                //Console.WriteLine("Right Thruster Activated: " + _currentThrusterSpeed);
-            }
             else
             {
                 if (_currentThrusterSpeed > 0)
-                    _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterDeceleration * deltaTime, 0);
+                    _currentThrusterSpeed = 0;
                 else if (_currentThrusterSpeed < 0)
-                    _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterDeceleration * deltaTime, 0);
+                    _currentThrusterSpeed = 0;
             }
 
             if (_currentThrusterSpeed != 0)
@@ -54,59 +48,58 @@ namespace BowThrust_MonoGame
                 //assign hitbox corners
                 Vector2 topLeft = _hitboxCorners[0];
                 Vector2 topRight = _hitboxCorners[1];
-                Vector2 bottomLeft = _hitboxCorners[3];
-                Vector2 bottomRight = _hitboxCorners[2];
+                Vector2 bottomLeft = _hitboxCorners[2];
+                Vector2 bottomRight = _hitboxCorners[3];
+
+                // Print corner positions
+                Console.WriteLine($"TopLeft: {topLeft}, TopRight: {topRight}, BottomLeft: {bottomLeft}, BottomRight: {bottomRight}");
+
+                // Check if each individual corner is colliding
+                bool topLeftCollision = IsCollisionAtPosition(new Vector2(topLeft.X, topLeft.Y - 5), tileMap);
+                bool topRightCollision = IsCollisionAtPosition(new Vector2(topRight.X, topRight.Y - 5), tileMap);
+                bool bottomLeftCollision = IsCollisionAtPosition(new Vector2(bottomLeft.X, bottomLeft.Y + 5), tileMap);
+                bool bottomRightCollision = IsCollisionAtPosition(new Vector2(bottomRight.X, bottomRight.Y + 5), tileMap);
+
+                // Print collision results for each corner
+                Console.WriteLine($"TopLeft Collision: {topLeftCollision}, TopRight Collision: {topRightCollision}, BottomLeft Collision: {bottomLeftCollision}, BottomRight Collision: {bottomRightCollision}");
+
 
                 // Check collision per side
-                bool leftCollision = IsCollisionAtPosition(new Vector2(topLeft.X - 5, topLeft.Y), tileMap) ||
-                     IsCollisionAtPosition(new Vector2(bottomLeft.X - 5, bottomLeft.Y), tileMap);
+                bool topCollision = topLeftCollision && topRightCollision; // Both top corners must hit
+                bool bottomCollision = bottomLeftCollision && bottomRightCollision; // Both bottom corners must hit
 
-                bool rightCollision = IsCollisionAtPosition(new Vector2(topRight.X + 5, topRight.Y), tileMap) ||
-                                    IsCollisionAtPosition(new Vector2(bottomRight.X + 5, bottomRight.Y), tileMap);
-
-                bool topCollision = IsCollisionAtPosition(new Vector2(topLeft.X, topLeft.Y - 5), tileMap) ||
-                                    IsCollisionAtPosition(new Vector2(topRight.X, topRight.Y - 5), tileMap);
-
-                bool bottomCollision = IsCollisionAtPosition(new Vector2(bottomLeft.X, bottomLeft.Y + 5), tileMap) ||
-                                    IsCollisionAtPosition(new Vector2(bottomRight.X, bottomRight.Y + 5), tileMap);
-
-                //Console.WriteLine($"Thruster Speed: {_currentThrusterSpeed}, Left Collision: {leftCollision}, Right Collision: {rightCollision}");
+                Console.WriteLine($"Thruster Speed: {_currentThrusterSpeed}, Left Collision: {topCollision}, Right Collision: {bottomCollision}");
 
                 // Allow movement unless that side is colliding
-                if (!leftCollision && _currentThrusterSpeed < 0)
+                if (!topCollision && _currentThrusterSpeed < 0)
                 {
-                    _position.X = newPosition.X;
-                    //Console.WriteLine("Moving Left");
+                    _position.Y = newPosition.Y;
+                    Console.WriteLine("Moving Up");
                 }
-                if (!rightCollision && _currentThrusterSpeed > 0)
+                if (!bottomCollision && _currentThrusterSpeed > 0)
                 {
-                    _position.X = newPosition.X;
-                    //Console.WriteLine("Moving Right");
+                    _position.Y = newPosition.Y;
+                    Console.WriteLine("Moving Down");
                 }
-                if (!topCollision)
-                    _position.Y = newPosition.Y; // Move up
-                if (!bottomCollision)
-                    _position.Y = newPosition.Y; // Move down
 
-
-                
                 // Disable ONLY the thruster pushing into the wall
-                if (leftCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
+                if (topCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
                 {
-                    _currentThrusterSpeed = Math.Min(0, _currentThrusterSpeed);
-                    //Console.WriteLine("Left Thruster Disabled Due to Collision");
+                    _currentThrusterSpeed = 0;
+                    Console.WriteLine("Left Thruster Disabled Due to Collision");
                 }
-                else if (rightCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
+                else if (bottomCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
                 {
-                    _currentThrusterSpeed = Math.Max(0, _currentThrusterSpeed);
-                    //Console.WriteLine("Right Thruster Disabled Due to Collision");
+                    _currentThrusterSpeed = 0;
+                    Console.WriteLine("Right Thruster Disabled Due to Collision");
                 }
 
                 // Stop thrusters completely ONLY if both directions are blocked
-                if (leftCollision && rightCollision)
+                if ((topCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"])) &&
+                    (bottomCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"])))
                 {
                     _currentThrusterSpeed = 0;
-                    //Console.WriteLine("Both Thrusters Disabled - Fully Blocked");
+                    Console.WriteLine("Both Thrusters Disabled - Fully Blocked");
                 }
             }
         }
