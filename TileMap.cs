@@ -54,7 +54,7 @@ public class TileMap
                 int tileID = Map[y, x];
                 Tiles tile = GetTile(tileID);
                 Vector2 position = new Vector2(x * TileSize, y * TileSize);
-                float scale = (float)TileSize / 64f;  // Assuming base tile size is 64
+                float scale = (float)TileSize / 64f;  //Assuming base tile size is 64 
 
                 spriteBatch.Draw(tile.TileTexture, position, null, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
             }

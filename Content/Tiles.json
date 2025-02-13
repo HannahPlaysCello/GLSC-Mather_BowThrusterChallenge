@@ -2,13 +2,13 @@
     {
         "TileID": 0,
         "IsPassable": true,
-        "Texture": "SolidBlueWater",
+        "Texture": "BlueWater",
         "Description": "Blue water tile"
     },
     {
         "TileID": 1,
         "IsPassable": false,
-        "Texture": "SolidGreenLand",
+        "Texture": "GreenLand",
         "Description": "Green land tile"
     }
 ]

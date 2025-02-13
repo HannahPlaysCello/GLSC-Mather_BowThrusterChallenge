@@ -40,6 +40,9 @@
     <None Include="Content\TileMap.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Content\TileMapSimple.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Content\Tiles.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

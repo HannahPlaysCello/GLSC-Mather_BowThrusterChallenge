@@ -66,7 +66,7 @@ public class Game1 : Game
         Console.WriteLine($"Initial ShipWThrusters Position: {_shipWThrusters.Position}");
         
         _tileMap = new TileMap();
-        _tileMap.LoadFromJson(Content, "Content/tilemap.json", "Content/Tiles.json", 64);
+        _tileMap.LoadFromJson(Content, "Content/TileMapSimple.json", "Content/Tiles.json", 32);
         
         base.Initialize();
 

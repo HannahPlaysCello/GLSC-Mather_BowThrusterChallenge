@@ -1,3 +1,5 @@
+//types of tiles for tile maps
+
 using Microsoft.Xna.Framework.Graphics;
 
 namespace BowThrust_MonoGame
