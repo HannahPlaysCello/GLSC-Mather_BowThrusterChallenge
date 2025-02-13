@@ -83,7 +83,7 @@ This section will include instructions for building the external control board a
 
 ## Known Issues
 
-no program yet
+the boat gets stuck to the side when it thrusters into impassible tiles and needs to be ruddered out
 
 -------
 

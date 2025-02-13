@@ -29,12 +29,12 @@ namespace BowThrust_MonoGame
             if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
             {
                 _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterAcceleration * deltaTime, -_maxThrusterSpeed);
-                Console.WriteLine("Left Thruster Activated: " + _currentThrusterSpeed);
+                //Console.WriteLine("Left Thruster Activated: " + _currentThrusterSpeed);
             }
             else if (keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
             {
                 _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterAcceleration * deltaTime, _maxThrusterSpeed);
-                Console.WriteLine("Right Thruster Activated: " + _currentThrusterSpeed);
+                //Console.WriteLine("Right Thruster Activated: " + _currentThrusterSpeed);
             }
             else
             {
@@ -70,18 +70,18 @@ namespace BowThrust_MonoGame
                 bool bottomCollision = IsCollisionAtPosition(new Vector2(bottomLeft.X, bottomLeft.Y + 5), tileMap) ||
                                     IsCollisionAtPosition(new Vector2(bottomRight.X, bottomRight.Y + 5), tileMap);
 
-                Console.WriteLine($"Thruster Speed: {_currentThrusterSpeed}, Left Collision: {leftCollision}, Right Collision: {rightCollision}");
+                //Console.WriteLine($"Thruster Speed: {_currentThrusterSpeed}, Left Collision: {leftCollision}, Right Collision: {rightCollision}");
 
                 // Allow movement unless that side is colliding
                 if (!leftCollision && _currentThrusterSpeed < 0)
                 {
                     _position.X = newPosition.X;
-                    Console.WriteLine("Moving Left");
+                    //Console.WriteLine("Moving Left");
                 }
                 if (!rightCollision && _currentThrusterSpeed > 0)
                 {
                     _position.X = newPosition.X;
-                    Console.WriteLine("Moving Right");
+                    //Console.WriteLine("Moving Right");
                 }
                 if (!topCollision)
                     _position.Y = newPosition.Y; // Move up
@@ -94,19 +94,19 @@ namespace BowThrust_MonoGame
                 if (leftCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterLeft"]))
                 {
                     _currentThrusterSpeed = Math.Min(0, _currentThrusterSpeed);
-                    Console.WriteLine("Left Thruster Disabled Due to Collision");
+                    //Console.WriteLine("Left Thruster Disabled Due to Collision");
                 }
                 else if (rightCollision && keyboardState.IsKeyDown(_controlKeyMap["ThrusterRight"]))
                 {
                     _currentThrusterSpeed = Math.Max(0, _currentThrusterSpeed);
-                    Console.WriteLine("Right Thruster Disabled Due to Collision");
+                    //Console.WriteLine("Right Thruster Disabled Due to Collision");
                 }
 
                 // Stop thrusters completely ONLY if both directions are blocked
                 if (leftCollision && rightCollision)
                 {
                     _currentThrusterSpeed = 0;
-                    Console.WriteLine("Both Thrusters Disabled - Fully Blocked");
+                    //Console.WriteLine("Both Thrusters Disabled - Fully Blocked");
                 }
             }
         }
