@@ -17,8 +17,14 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
     private Settings _settings;
 
-    private enum GameState { StartScreen, Menu, Playing, GameOver }
-    private GameState _currentState = GameState.Menu; //load menu on start-up -- need to change this to StartScreen
+    private enum GameState 
+    {
+        StartScreen,
+        Menu,
+        Playing,
+        GameOver
+    }
+    private GameState _currentState = GameState.StartScreen; //load menu on start-up -- need to change this to StartScreen
 
     private SpriteFont _font;
     
@@ -36,6 +42,11 @@ public class Game1 : Game
     private ScoreManager _scoreManager;
 
     private MenuManager _menuManager;
+
+    //timeout 
+    private float idleTime = 0f;
+    private const float timeOut = 45f;
+    
 
  
 
@@ -195,7 +206,14 @@ public class Game1 : Game
         if (keyboardState.IsKeyDown(_controlKeyMap["Close"]))
             Exit();
 
-        if (_currentState == GameState.Menu)
+        if (_currentState == GameState.StartScreen)
+        {
+            if (keyboardState.IsKeyDown(Keys.Space))
+            {
+                _currentState = GameState.Menu;
+            }
+        }
+        else if (_currentState == GameState.Menu)
         {
             bool startGame = _menuManager.Update(keyboardState, _controlKeyMap);
 
@@ -226,10 +244,10 @@ public class Game1 : Game
 
             if (keyboardState.IsKeyDown(_controlKeyMap["Menu"]))
             {
-            _currentState = GameState.Menu;
+                _currentState = GameState.Menu;
 
-            _ship = null;
-            _shipWThrusters = null;
+                _ship = null;
+                _shipWThrusters = null;
             }
 
             // Update the selected ship
@@ -271,8 +289,17 @@ public class Game1 : Game
 
         _spriteBatch.Begin();
 
-
-        if (_currentState == GameState.Menu)
+        if (_currentState == GameState.StartScreen)
+        {
+            string message = "Press spacebar to start";
+            Vector2 textSize = _font.MeasureString(message);
+            Vector2 textPosition = new Vector2(
+                (GraphicsDevice.Viewport.Width - textSize.X) / 2,
+                (GraphicsDevice.Viewport.Height - textSize.Y) / 2
+            );
+            _spriteBatch.DrawString(_font, message, textPosition, Color.White);
+        }
+        else if (_currentState == GameState.Menu)
         {
             _menuManager.Draw(_spriteBatch);
             //GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
