@@ -3,12 +3,21 @@
         "TileID": 0,
         "IsPassable": true,
         "Texture": "BlueWater",
-        "Description": "Blue water tile"
+        "Description": "Blue water tile",
+        "IsEndTile": false
     },
     {
         "TileID": 1,
         "IsPassable": false,
         "Texture": "GreenLand",
-        "Description": "Green land tile"
+        "Description": "Green land tile",
+        "IsEndTile": false
+    },
+    {
+        "TileID": 2,
+        "IsPassable": true,
+        "Texture": "RedEndTile",
+        "Description": "End goal, trigger's end screen",
+        "IsEndTile": true
     }
 ]

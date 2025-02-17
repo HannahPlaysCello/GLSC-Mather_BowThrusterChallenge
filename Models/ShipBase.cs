@@ -106,7 +106,13 @@ namespace BowThrust_MonoGame
             Vector2 newPosition = CalculateNewPosition(deltaTime);
             if (!IsCollisionAtPosition(newPosition, tileMap))
             {
-                _position = newPosition; 
+                _position = newPosition;
+
+                //check if the tile is end tile
+                if (IsEndTileAtPosition(_position, tileMap))
+                {
+                    Console.WriteLine("Ship reached the end tile! Triggering end screen.");
+                }
             }
             else
             {
@@ -117,7 +123,7 @@ namespace BowThrust_MonoGame
             _position = BoundaryManager.ClampToBounds(_position, _screenWidth, _screenHeight, _frameWidth, _frameHeight);
 
             //update hitbox
-            Vector2 hitboxCenter = _position; // Adjust based on sprite shape
+            Vector2 hitboxRotate = _position; // Adjust based on sprite shape
             float Width = _frameWidth;
             float halfHeight = _frameHeight / 5;
 
@@ -127,12 +133,12 @@ namespace BowThrust_MonoGame
             Vector2 bottomLeft = new Vector2(0, halfHeight);
             Vector2 bottomRight = new Vector2(Width, halfHeight);
 
-            // Rotate each point around the hitbox center
+            // Rotate each point around the hitbox axis
             Matrix rotationMatrix = Matrix.CreateRotationZ(_rotation);
-            _hitboxCorners[0] = Vector2.Transform(topLeft, rotationMatrix) + hitboxCenter;
-            _hitboxCorners[1] = Vector2.Transform(topRight, rotationMatrix) + hitboxCenter;
-            _hitboxCorners[2] = Vector2.Transform(bottomLeft, rotationMatrix) + hitboxCenter;
-            _hitboxCorners[3] = Vector2.Transform(bottomRight, rotationMatrix) + hitboxCenter;
+            _hitboxCorners[0] = Vector2.Transform(topLeft, rotationMatrix) + hitboxRotate;
+            _hitboxCorners[1] = Vector2.Transform(topRight, rotationMatrix) + hitboxRotate;
+            _hitboxCorners[2] = Vector2.Transform(bottomLeft, rotationMatrix) + hitboxRotate;
+            _hitboxCorners[3] = Vector2.Transform(bottomRight, rotationMatrix) + hitboxRotate;
 
             //update animation frames
             UpdateAnimation(gameTime);
@@ -206,6 +212,41 @@ namespace BowThrust_MonoGame
             return isColliding;
         }
 
+        //send to end screen if end tile hit
+        public bool IsEndTileAtPosition(Vector2 position, TileMap tileMap)
+        {
+            //check all four corners of the ship’s hitbox (you dummy)
+            Vector2[] corners = new Vector2[]
+            {
+                _hitboxCorners[0], //top left
+                _hitboxCorners[1], //top right
+                _hitboxCorners[2], //bottom left
+                _hitboxCorners[3]  //bottom right
+            };
+
+            foreach (Vector2 corner in corners)
+            {
+                int tileX = (int)(corner.X / tileMap.TileSize);
+                int tileY = (int)(corner.Y / tileMap.TileSize);
+
+                Console.WriteLine($"Checking End Tile at ({tileX}, {tileY})");
+
+                if (tileX < 0 || tileX >= tileMap.Width || tileY < 0 || tileY >= tileMap.Height)
+                    continue; //skip out-of-bounds corners
+
+                int tileID = tileMap.Map[tileY, tileX];
+                bool isEnd = tileMap.GetTile(tileID).IsEndTile;
+
+                Console.WriteLine($"Tile ID: {tileID}, IsEndTile: {isEnd}");
+
+                if (isEnd)
+                    return true; //if one corner is on the end tile
+            }
+
+            return false;
+        }
+
+
         //sprite sheet animation
         protected void UpdateAnimation(GameTime gameTime)
         {
@@ -229,9 +270,6 @@ namespace BowThrust_MonoGame
 
             spriteBatch.Draw(_pixelTexture, new Rectangle((int)start.X, (int)start.Y, (int)edge.Length(), 1), null, color, angle, Vector2.Zero, SpriteEffects.None, 0);
         }
-
-
-
 
         //draw sprite :)
         public void Draw(SpriteBatch spriteBatch)

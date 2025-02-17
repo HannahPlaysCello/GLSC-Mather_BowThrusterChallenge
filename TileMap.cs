@@ -36,7 +36,8 @@ public class TileMap
         foreach (var tileData in tileDataList)
         {
             Texture2D texture = content.Load<Texture2D>(tileData.Texture);
-            _tileDefinitions[tileData.TileID] = new Tiles(tileData.TileID, tileData.IsPassable, texture, tileData.Description);
+            bool isEndTile = tileData.TileID == 2; //check if end tile
+            _tileDefinitions[tileData.TileID] = new Tiles(tileData.TileID, tileData.IsPassable, isEndTile, texture, tileData.Description);
         }
     }
 

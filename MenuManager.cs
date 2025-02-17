@@ -55,13 +55,13 @@ namespace BowThrust_MonoGame
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.DrawString(_font, "Choose Boat Mode:", new Vector2(300, 200), Color.White);
-
+            spriteBatch.DrawString(_font, "Choose Boat Mode:", new Vector2(300, 200), Color.Red);
             for (int i = 0; i < _options.Length; i++)
             {
                 Color color = (_selectedOption == i) ? Color.Yellow : Color.White;
                 spriteBatch.DrawString(_font, _options[i], new Vector2(300, 300 + (i * 50)), color);
             }
+            spriteBatch.DrawString(_font, "Press ENTER to select", new Vector2(300, 450), Microsoft.Xna.Framework.Color.Gray);
         }
     }
 }

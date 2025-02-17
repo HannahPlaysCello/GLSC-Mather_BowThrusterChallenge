@@ -17,8 +17,8 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
     private Settings _settings;
 
-    private enum GameState { Menu, Playing, GameOver }
-    private GameState _currentState = GameState.Menu; //load menu on start-up
+    private enum GameState { StartScreen, Menu, Playing, GameOver }
+    private GameState _currentState = GameState.Menu; //load menu on start-up -- need to change this to StartScreen
 
     private SpriteFont _font;
     
@@ -237,6 +237,27 @@ public class Game1 : Game
                 _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
             else if (!_useThrusters && _ship !=null)
                 _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
+        
+            //send to end screen
+            if (_useThrusters && _shipWThrusters != null && _shipWThrusters.IsEndTileAtPosition(_shipWThrusters.Position, _tileMap))
+            {
+                _currentState = GameState.GameOver;
+            }
+            else if (!_useThrusters && _ship != null && _ship.IsEndTileAtPosition(_ship.Position, _tileMap))
+            {
+                _currentState = GameState.GameOver;
+            }
+        }
+
+        else if (_currentState == GameState.GameOver)
+        {
+            if (keyboardState.IsKeyDown(_controlKeyMap["Restart"]))
+            {
+                _scoreManager.ResetScore(); //reset score
+                _ship = null; //clear the ships
+                _shipWThrusters = null;
+                _currentState = GameState.Menu; //go to menu
+            }
         }
 
         base.Update(gameTime);
@@ -250,7 +271,13 @@ public class Game1 : Game
 
         _spriteBatch.Begin();
 
-        if (_currentState == GameState.Playing)
+
+        if (_currentState == GameState.Menu)
+        {
+            _menuManager.Draw(_spriteBatch);
+            //GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
+        }
+        else if (_currentState == GameState.Playing)
         {
             for (int y = 0; y < _tileMap.Height; y++)
             {
@@ -262,30 +289,7 @@ public class Game1 : Game
                     _spriteBatch.Draw(tile.TileTexture, new Vector2(x * _tileMap.TileSize, y * _tileMap.TileSize), Microsoft.Xna.Framework.Color.White);
                 }
             }
-        }
-        else if (_currentState == GameState.Menu)
-        {
-            _menuManager.Draw(_spriteBatch);
-            //GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
-        }
 
-        /*
-        if (_currentState == GameState.Menu)
-        {
-            // Draw menu options
-            string option1 = "Normal Mode";
-            string option2 = "Thruster Mode";
-            Microsoft.Xna.Framework.Color option1Color = (_selectedOption == 0) ? Microsoft.Xna.Framework.Color.Yellow : Microsoft.Xna.Framework.Color.White;
-            Microsoft.Xna.Framework.Color option2Color = (_selectedOption == 1) ? Microsoft.Xna.Framework.Color.Yellow : Microsoft.Xna.Framework.Color.White;
-
-            _spriteBatch.DrawString(_font, "Choose Boat Mode:", new Vector2(300, 200), Microsoft.Xna.Framework.Color.White);
-            _spriteBatch.DrawString(_font, option1, new Vector2(300, 300), option1Color);
-            _spriteBatch.DrawString(_font, option2, new Vector2(300, 350), option2Color);
-            _spriteBatch.DrawString(_font, "Press ENTER to select", new Vector2(300, 450), Microsoft.Xna.Framework.Color.Gray);
-        }
-        */
-        else if (_currentState == GameState.Playing)
-        {
             //draw the background
             _tileMap.Draw(_spriteBatch);
 
@@ -330,6 +334,14 @@ public class Game1 : Game
             //draw collision counter
             _scoreManager.Draw(_spriteBatch, scorePosition, collisionPosition);
         }
+        else if (_currentState == GameState.GameOver)
+        {
+            _spriteBatch.DrawString(_font, "Congratulations! You've reached the goal!", new Vector2(300, 200), Color.LimeGreen);
+            _spriteBatch.DrawString(_font, "Press R to restart", new Vector2(300, 250), Color.White);
+        }
+
+
+
          
         _spriteBatch.End();
         base.Draw(gameTime);
