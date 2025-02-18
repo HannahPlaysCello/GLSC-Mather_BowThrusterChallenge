@@ -17,6 +17,9 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
     private Settings _settings;
 
+    private int screenWidth;
+    private int screenHeight;
+
     private enum GameState 
     {
         StartScreen,
@@ -55,6 +58,8 @@ public class Game1 : Game
     private int _challengeCollisionWThrusters = 0; //score for thrusters
     private bool _challengeComplete = false; //results screen
 
+    private int desiredTileSize = 32;
+
     //game setup
     public Game1()
     {
@@ -65,28 +70,6 @@ public class Game1 : Game
         // window setup
         Window.AllowUserResizing = false;
         Window.Position = new Microsoft.Xna.Framework.Point(0, 0); // why does this not go to the top-left corner lol
-    }
-
-    protected override void Initialize()
-    {
-        LoadSettings();
-
-        int screenWidth = _graphics.PreferredBackBufferWidth;
-        int screenHeight = _graphics.PreferredBackBufferHeight;
-
-        // ship placement on screen
-        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-        _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-        
-        Console.WriteLine($"Initial Ship Position: {_ship.Position}");
-        Console.WriteLine($"Initial ShipWThrusters Position: {_shipWThrusters.Position}");
-        
-        _tileMap = new TileMap();
-        _tileMap.LoadFromJson(Content, "Content/TileMapSimple.json", "Content/Tiles.json", 32);
-        
-        base.Initialize();
-
-        _graphics.ApplyChanges();  
     }
 
     //settings from json
@@ -188,6 +171,35 @@ public class Game1 : Game
         };
     } 
 
+    //control tile map
+    private void ResetTileMap()
+    {
+        _tileMap = new TileMap();
+        _tileMap.LoadFromJson(Content, "Content/TileMapSimple.json", "Content/Tiles.json", desiredTileSize);
+    }
+
+    //
+    protected override void Initialize()
+    {
+        LoadSettings();
+
+        screenWidth = _graphics.PreferredBackBufferWidth;
+        screenHeight = _graphics.PreferredBackBufferHeight;
+
+        // ship placement on screen
+        _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
+        _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
+        
+        Console.WriteLine($"Initial Ship Position: {_ship.Position}");
+        Console.WriteLine($"Initial ShipWThrusters Position: {_shipWThrusters.Position}");
+        
+        ResetTileMap();
+        
+        base.Initialize();
+
+        _graphics.ApplyChanges();  
+    }
+
     //game content
     protected override void LoadContent()
     {
@@ -207,7 +219,7 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         KeyboardState keyboardState = Keyboard.GetState();
-        
+
         //idle timer
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         if (Keyboard.GetState().GetPressedKeys().Length > 0)
@@ -226,15 +238,25 @@ public class Game1 : Game
         //close game from any screen!
         if (keyboardState.IsKeyDown(_controlKeyMap["Close"]))
             Exit();
-        //reset button
+        //reset button -- gotta add this to everywhere instead of the stupid menu button  
         if (keyboardState.IsKeyDown(_controlKeyMap["Restart"]))
             {
                 _currentState = GameState.Menu;
-                _ship = null;
-                _shipWThrusters = null;
+
+                if (_ship != null) _ship = null;
+                if (_shipWThrusters != null) _shipWThrusters = null;
+
+                _challengeComplete = false;
+                _challengePhaseOne = true;
+
                 _scoreManager.ResetScore();
+                _challengeCollisionNoThrusters = 0;
+                _challengeCollisionWThrusters = 0;
+
+                ResetTileMap();
             }
 
+        //game states
         if (_currentState == GameState.StartScreen)
         {
             inGame = false;
@@ -251,9 +273,6 @@ public class Game1 : Game
 
             if (startGame)
             {
-                int screenWidth = _graphics.PreferredBackBufferWidth;
-                int screenHeight = _graphics.PreferredBackBufferHeight;
-
                 //modified to include more than 2 options (why did i make this difficult for myself)
                 if (_menuManager.GetSelectedOption() == 0) //normal mode
                 {
@@ -275,6 +294,7 @@ public class Game1 : Game
                     _challengePhaseOne = true; //start in normal mode
                     _challengeComplete = false;
                     _scoreManager.ResetScore();
+
                     //load ship for normal mode
                     _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                     _ship.LoadContent(_boatTexture, GraphicsDevice);
@@ -292,7 +312,6 @@ public class Game1 : Game
                 _ship = null;
                 _shipWThrusters = null;
             }
-
             // Update the selected ship
             if (_useThrusters && _shipWThrusters != null)
                 _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
@@ -317,15 +336,11 @@ public class Game1 : Game
                 if (_challengePhaseOne)
                 {
                     _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
-                    if (_ship.IsEndTileAtPosition(_ship.Position, _tileMap))
+                    if (_ship != null && _ship.IsEndTileAtPosition(_ship.Position, _tileMap))
                     {
                         _challengeCollisionNoThrusters = _scoreManager.Collisions;
                         _scoreManager.ResetScore();
-
                         _challengePhaseOne = false;
-                        int screenWidth = _graphics.PreferredBackBufferWidth;
-                        int screenHeight = _graphics.PreferredBackBufferHeight;
-
                         _ship = null;
                         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                         _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
@@ -334,13 +349,14 @@ public class Game1 : Game
                 else //thrusters
                 {
                     _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
-                    if (_shipWThrusters.IsEndTileAtPosition(_shipWThrusters.Position, _tileMap))
+                    if (_shipWThrusters != null && _shipWThrusters.IsEndTileAtPosition(_shipWThrusters.Position, _tileMap))
                     {
                         _challengeCollisionWThrusters = _scoreManager.Collisions;
                         _challengeComplete = true; //go to resutls screen
                     }
                 }
             }
+            //i want this to work at all times, altho this will have to stay on backend or add reset button. will have to remove this block in subroutines so im not duplicating
             /*else 
             {
                 if (keyboardState.IsKeyDown(_controlKeyMap["Restart"]))
@@ -391,16 +407,6 @@ public class Game1 : Game
         }
         else if (_currentState == GameState.Playing)
         {
-            for (int y = 0; y < _tileMap.Height; y++)
-            {
-                for (int x = 0; x < _tileMap.Width; x++)
-                {
-                    int tileID = _tileMap.Map[y, x];
-                    Tiles tile = _tileMap.GetTile(tileID);
-
-                    _spriteBatch.Draw(tile.TileTexture, new Vector2(x * _tileMap.TileSize, y * _tileMap.TileSize), Microsoft.Xna.Framework.Color.White);
-                }
-            }
             //draw the background
             _tileMap.Draw(_spriteBatch);
             //draw the correct ship
@@ -417,8 +423,6 @@ public class Game1 : Game
             Vector2 textSize = _font.MeasureString(menuText);
             Vector2 controlsText1Size = _font.MeasureString(controlsText1);
             Vector2 controlsText2Size = _font.MeasureString(controlsText2);
-            int screenWidth = _graphics.PreferredBackBufferWidth;
-            int screenHeight = _graphics.PreferredBackBufferHeight;
             //position for instrucitons
             Vector2 menuPosition = new Vector2(screenWidth - textSize.X - 10, screenHeight - textSize.Y - 10);
             Vector2 controlsPosition1 = new Vector2(screenWidth - controlsText1Size.X - 10, menuPosition.Y - controlsText1Size.Y - 5);
@@ -442,8 +446,14 @@ public class Game1 : Game
                     _ship.Draw(_spriteBatch);
                 else
                     _shipWThrusters.Draw(_spriteBatch);
-                    _spriteBatch.DrawString(_font, "Challenge Mode!", new Vector2(300, 50), Color.Yellow);
-                    _spriteBatch.DrawString(_font, "Phase: " + (_challengePhaseOne ? "1, No Thrusters" : "2, With Thrusters"), new Vector2(300, 100), Color.White);
+                    _spriteBatch.DrawString(_font, "Challenge Mode!", new Vector2(100, 15), Color.Yellow);
+                    _spriteBatch.DrawString(_font, "Phase: " + (_challengePhaseOne ? "1, No Thrusters" : "2, With Thrusters"), new Vector2(100, 65), Color.White);
+
+                //position for score counter
+                Vector2 scorePosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, -20); //will figure out how i want to score this later, then move this into the visible area of teh screen lmao!
+                Vector2 collisionPosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, 15);
+                //draw collision counter
+                _scoreManager.Draw(_spriteBatch, scorePosition, collisionPosition);
             }
             else 
             {
