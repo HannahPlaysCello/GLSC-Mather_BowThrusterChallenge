@@ -14,21 +14,21 @@ public class TileMap
     public int[,] Map { get; private set; }
     public int TileSize { get; private set; }
 
-    // Stores tile definitions loaded from JSON
+    //stores tile definitions loaded from JSON
     private Dictionary<int, Tiles> _tileDefinitions;
 
     public void LoadFromJson(ContentManager content, string mapFilePath, string tileDefinitionsFile, int tileSize)
     {
         TileSize = tileSize;
 
-        // Load map
+        //load map
         string mapJson = File.ReadAllText(mapFilePath);
         var mapData = JsonConvert.DeserializeObject<TileMapData>(mapJson);
         Map = ConvertTo2DArray(mapData.map);
         Width = Map.GetLength(1);
         Height = Map.GetLength(0);
 
-        // Load tile metadata from JSON
+        //load tile metadata from JSON
         string tileDefinitionsJson = File.ReadAllText(tileDefinitionsFile);
         List<TileData> tileDataList = JsonConvert.DeserializeObject<List<TileData>>(tileDefinitionsJson);
 
@@ -68,7 +68,7 @@ public class TileMap
         int tileY = (int)(position.Y / TileSize);
 
         if (tileX < 0 || tileX >= Width || tileY < 0 || tileY >= Height)
-            return true;  // Treat out-of-bounds as a collision
+            return true;  //treat out-of-bounds as a collision
 
         int tileID = Map[tileY, tileX];
         return !_tileDefinitions[tileID].IsPassable;

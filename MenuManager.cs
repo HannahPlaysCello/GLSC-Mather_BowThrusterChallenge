@@ -11,7 +11,7 @@ namespace BowThrust_MonoGame
         private SpriteFont _font;
         private int _selectedOption = 0;
         private bool _isKeyPressed = false;
-        private string[] _options = { "Normal Mode", "Thruster Mode" };
+        private string[] _options = { "Normal Mode", "Thruster Mode", "Challenge Mode" };
 
         public MenuManager(SpriteFont font)
         {
@@ -26,30 +26,26 @@ namespace BowThrust_MonoGame
         public bool Update(KeyboardState keyboardState, Dictionary<string, Keys> controlKeyMap)
         {
             bool startGame = false;
-
             if (keyboardState.IsKeyDown(controlKeyMap["MenuUp"]) && !_isKeyPressed)
             {
-                _selectedOption = 0;  // Normal Mode
+                _selectedOption = (_selectedOption - 1 + _options.Length) % _options.Length;  //navigate up
                 _isKeyPressed = true;
-                Console.WriteLine("normal selected");
+                Console.WriteLine("navigated up");
             }
             if (keyboardState.IsKeyDown(controlKeyMap["MenuDown"]) && !_isKeyPressed)
             {
-                _selectedOption = 1;  // Thruster Mode
+                _selectedOption = (_selectedOption + 1) % _options.Length;  //navigate down
                 _isKeyPressed = true;
-                Console.WriteLine("thruster selected");
-            }  
-
+                Console.WriteLine("navigated down");
+            }
             if (keyboardState.IsKeyUp(controlKeyMap["MenuUp"]) && keyboardState.IsKeyUp(controlKeyMap["MenuDown"]))
             {
                 _isKeyPressed = false;
             }
-
             if (keyboardState.IsKeyDown(controlKeyMap["Select"]))
             {
                 startGame = true;
             }
-
             return startGame;
         }
 
