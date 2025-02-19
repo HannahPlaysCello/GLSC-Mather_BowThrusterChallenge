@@ -13,40 +13,43 @@ namespace BowThrust_MonoGame;
 
 public class Game1 : Game
 {
+    //get files
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private Settings _settings;
+    private Ship _ship;
+    private ShipWThrusters _shipWThrusters;
+    private Texture2D _boatTexture;
 
+    //window set-up
     private int screenWidth;
     private int screenHeight;
+    private Microsoft.Xna.Framework.Color _backgroundColor;
 
+    //game modes
     private enum GameState 
     {
         StartScreen,
         Menu,
         Practice, //right now, this contains both normal and thruster. might change
         Challenge,
+        ChallengeTransition,
         GameOver
     }
     private GameState _currentState = GameState.StartScreen; //state to load on start-up
-
-    private SpriteFont _font;
-    
-    private Ship _ship;
-    private ShipWThrusters _shipWThrusters;
     private bool _useThrusters = false;
-    private Texture2D _boatTexture;
 
-    private Microsoft.Xna.Framework.Color _backgroundColor;
-
+    //inputs
     private Dictionary<String, Keys> _controlKeyMap;
 
-    //tile map set up
+    //tile map set-up
     private TileMap _tileMap;
     private int desiredTileSize = 32;
 
+    //score
     private ScoreManager _scoreManager;
 
+    //menu
     private MenuManager _menuManager;
 
     //timeout 
@@ -59,6 +62,13 @@ public class Game1 : Game
     private int _challengeCollisionNoThrusters = 0; //score for no thrusters
     private int _challengeCollisionWThrusters = 0; //score for thrusters
     private bool _challengeComplete = false; //results screen
+    private string _transitionMessage = ""; //to store different strings based on different phases
+    private float _overlayAlpha = 0f; //transparency level for phase transition
+    private const float _overlayFadeSpeed = 1.5f; //change this value for how fast transition screen fades in
+
+    //fonts
+    private SpriteFont _font;
+
 
     //game setup
     public Game1()
@@ -351,7 +361,7 @@ public class Game1 : Game
                         Console.WriteLine("ship reached end tile");
                         _challengeCollisionNoThrusters = _scoreManager.Collisions;
                         _scoreManager.ResetScore();
-                        _challengePhaseOne = false;
+                        //_challengePhaseOne = false;
                         if (_scoreManager == null)
                             Console.WriteLine("SCORE MANAGER IS NULL");
                         else 
@@ -362,11 +372,8 @@ public class Game1 : Game
                         else
                             Console.WriteLine("boat texture still exists");
 
-                        //this is where the problem is. it crashes when these lines are removed or moved to a different routine
-                        _ship = null;
-                        _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-                        _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
-
+                        _transitionMessage = ($"You finished round 1 with {_challengeCollisionNoThrusters}collisions!\nPress space to continue");
+                        _currentState = GameState.ChallengeTransition;
                     }
                 }
 
@@ -379,7 +386,6 @@ public class Game1 : Game
                         _challengeComplete = true; //go to resutls screen
                     }
                 }
-                
             }
 
 
@@ -395,6 +401,21 @@ public class Game1 : Game
                     _scoreManager.ResetScore();
                 }
             }*/
+        }
+
+        else if (_currentState == GameState.ChallengeTransition)
+        {
+            _overlayAlpha = Math.Min(_overlayAlpha + (_overlayFadeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds), 1f);
+            if (keyboardState.IsKeyDown(_controlKeyMap["Go"])) //make this read from key dictionary 
+            {
+                _overlayAlpha = 0f; //rest overlay for next time (duh im so good at making the same mistake over and over again)
+                _currentState = GameState.Challenge; //resume game
+                _challengePhaseOne = false; //resume in trhuster mode
+                //_scoreManager.ResetScore(); didn't work
+                _ship = null;
+                _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
+                _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
+            }
         }
 
         else if (_currentState == GameState.GameOver)
@@ -510,6 +531,27 @@ public class Game1 : Game
                 _spriteBatch.DrawString(_font, resultMessage, new Vector2(300, 300), Color.Yellow);
                 _spriteBatch.DrawString(_font, "Press R to return to menu", new Vector2(300, 350), Color.Gray);
             }
+        }
+        else if (_currentState == GameState.ChallengeTransition)
+        {
+            //keep map and boat
+            _tileMap.Draw(_spriteBatch);
+            if (_challengePhaseOne && _ship != null)
+                _ship.Draw(_spriteBatch);
+            else if (!_challengePhaseOne && _shipWThrusters != null)
+                _shipWThrusters.Draw(_spriteBatch);
+            //overlay for message
+            Texture2D overlayTexture = new Texture2D(GraphicsDevice, 1, 1);
+            overlayTexture.SetData(new[] { new Color(0, 0, 0, (int)(200 * _overlayAlpha)) });
+            _spriteBatch.Draw(overlayTexture, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
+            //write message
+            string message = _transitionMessage;
+            Vector2 textSize = _font.MeasureString(message);
+            Vector2 textPosition = new Vector2(
+                (GraphicsDevice.Viewport.Width - textSize.X) / 2,
+                (GraphicsDevice.Viewport.Height - textSize.Y) / 2
+            );
+            _spriteBatch.DrawString(_font, message, textPosition, Color.Yellow);
         }
         else if (_currentState == GameState.GameOver)
         {
