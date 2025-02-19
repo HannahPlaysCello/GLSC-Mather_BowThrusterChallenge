@@ -65,9 +65,14 @@ public class Game1 : Game
     private string _transitionMessage = ""; //to store different strings based on different phases
     private float _overlayAlpha = 0f; //transparency level for phase transition
     private const float _overlayFadeSpeed = 1.5f; //change this value for how fast transition screen fades in
+    
+    //input debouncer. Used only in challenge transition state right now
+    private float _inputDelayTimer = 0f;
+    private const float _inputDelayDuration = 0.2f;
 
     //fonts
     private SpriteFont _font;
+
 
 
     //game setup
@@ -225,6 +230,13 @@ public class Game1 : Game
     //
     protected override void Update(GameTime gameTime)
     {
+        //prevent boat movement from triggering when dismissing challenge transition screen
+        if (_inputDelayTimer > 0)
+        {
+            _inputDelayTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            return; // Skip input processing until delay expires
+        }
+
         KeyboardState keyboardState = Keyboard.GetState();
 
         //idle timer
@@ -351,7 +363,7 @@ public class Game1 : Game
                         _challengeCollisionNoThrusters = _scoreManager.Collisions;
                         _scoreManager.ResetScore();
 
-                        _transitionMessage = ($"You finished round 1 with {_challengeCollisionNoThrusters}collisions!\nPress space to continue");
+                        _transitionMessage = ($"You finished round 1 with {_challengeCollisionNoThrusters} collisions!\nPress space to continue");
                         _currentState = GameState.ChallengeTransition;
                     }
                 }
@@ -393,6 +405,8 @@ public class Game1 : Game
                 _ship = null;
                 _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                 _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
+
+                _inputDelayTimer = _inputDelayDuration; //prevent the spacebar dismiss of overlay triggering boat movement in thruster mode
             }
         }
 
