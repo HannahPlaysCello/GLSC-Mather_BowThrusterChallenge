@@ -229,7 +229,7 @@ namespace BowThrust_MonoGame
                 int tileX = (int)(corner.X / tileMap.TileSize);
                 int tileY = (int)(corner.Y / tileMap.TileSize);
 
-                Console.WriteLine($"Checking End Tile at ({tileX}, {tileY})");
+                //Console.WriteLine($"Checking End Tile at ({tileX}, {tileY})");
 
                 if (tileX < 0 || tileX >= tileMap.Width || tileY < 0 || tileY >= tileMap.Height)
                     continue; //skip out-of-bounds corners
@@ -237,7 +237,7 @@ namespace BowThrust_MonoGame
                 int tileID = tileMap.Map[tileY, tileX];
                 bool isEnd = tileMap.GetTile(tileID).IsEndTile;
 
-                Console.WriteLine($"Tile ID: {tileID}, IsEndTile: {isEnd}");
+                //Console.WriteLine($"Tile ID: {tileID}, IsEndTile: {isEnd}");
 
                 if (isEnd)
                     return true; //if one corner is on the end tile

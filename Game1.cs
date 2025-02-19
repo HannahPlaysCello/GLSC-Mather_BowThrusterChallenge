@@ -24,7 +24,7 @@ public class Game1 : Game
     {
         StartScreen,
         Menu,
-        Playing, //right now, this contains both normal and thruster. might change
+        Practice, //right now, this contains both normal and thruster. might change
         Challenge,
         GameOver
     }
@@ -41,7 +41,9 @@ public class Game1 : Game
 
     private Dictionary<String, Keys> _controlKeyMap;
 
+    //tile map set up
     private TileMap _tileMap;
+    private int desiredTileSize = 32;
 
     private ScoreManager _scoreManager;
 
@@ -57,8 +59,6 @@ public class Game1 : Game
     private int _challengeCollisionNoThrusters = 0; //score for no thrusters
     private int _challengeCollisionWThrusters = 0; //score for thrusters
     private bool _challengeComplete = false; //results screen
-
-    private int desiredTileSize = 32;
 
     //game setup
     public Game1()
@@ -279,14 +279,14 @@ public class Game1 : Game
                     _useThrusters = false;
                     _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                     _ship.LoadContent(_boatTexture, GraphicsDevice);
-                    _currentState = GameState.Playing;
+                    _currentState = GameState.Practice;
                 }
                 else if (_menuManager.GetSelectedOption() == 1) //thrusters
                 {
                     _useThrusters = true;
                     _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                     _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
-                    _currentState = GameState.Playing;
+                    _currentState = GameState.Practice;
                 }
                 else if (_menuManager.GetSelectedOption() == 2) //challenge
                 {
@@ -302,7 +302,7 @@ public class Game1 : Game
             }
         }
 
-        else if (_currentState == GameState.Playing)
+        else if (_currentState == GameState.Practice)
         {
 
             if (keyboardState.IsKeyDown(_controlKeyMap["Menu"]))
@@ -331,21 +331,45 @@ public class Game1 : Game
 
         else if (_currentState == GameState.Challenge)
         {
+            Console.WriteLine("challenge mode phase " + (_challengePhaseOne ? "1" : "2"));
+
             if (!_challengeComplete) //allow gameplay if not done
             {
                 if (_challengePhaseOne)
                 {
-                    _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
+                    Console.WriteLine("update _ship");
+
+                    //_ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
+                    if (_ship == null)
+                        Console.WriteLine("_ship is null before update");
+                    else
+                        _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
+
+
                     if (_ship != null && _ship.IsEndTileAtPosition(_ship.Position, _tileMap))
                     {
+                        Console.WriteLine("ship reached end tile");
                         _challengeCollisionNoThrusters = _scoreManager.Collisions;
                         _scoreManager.ResetScore();
                         _challengePhaseOne = false;
+                        if (_scoreManager == null)
+                            Console.WriteLine("SCORE MANAGER IS NULL");
+                        else 
+                            Console.WriteLine("score manager exists");
+                        
+                        if (_boatTexture == null)
+                            Console.WriteLine("boattexture is null");
+                        else
+                            Console.WriteLine("boat texture still exists");
+
+                        //this is where the problem is. it crashes when these lines are removed or moved to a different routine
                         _ship = null;
                         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                         _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
+
                     }
                 }
+
                 else //thrusters
                 {
                     _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
@@ -355,7 +379,11 @@ public class Game1 : Game
                         _challengeComplete = true; //go to resutls screen
                     }
                 }
+                
             }
+
+
+
             //i want this to work at all times, altho this will have to stay on backend or add reset button. will have to remove this block in subroutines so im not duplicating
             /*else 
             {
@@ -405,7 +433,7 @@ public class Game1 : Game
             _menuManager.Draw(_spriteBatch);
             //GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
         }
-        else if (_currentState == GameState.Playing)
+        else if (_currentState == GameState.Practice)
         {
             //draw the background
             _tileMap.Draw(_spriteBatch);
@@ -442,12 +470,25 @@ public class Game1 : Game
             if (!_challengeComplete)
             {
                 _tileMap.Draw(_spriteBatch);
+
+                if (_challengePhaseOne && _ship != null)
+                {
+                    _ship.Draw(_spriteBatch);
+                }
+                else if (!_challengePhaseOne && _shipWThrusters != null)
+                {
+                    _shipWThrusters.Draw(_spriteBatch);
+                }
+
+                /*
                 if (_challengePhaseOne)
                     _ship.Draw(_spriteBatch);
                 else
                     _shipWThrusters.Draw(_spriteBatch);
-                    _spriteBatch.DrawString(_font, "Challenge Mode!", new Vector2(100, 15), Color.Yellow);
-                    _spriteBatch.DrawString(_font, "Phase: " + (_challengePhaseOne ? "1, No Thrusters" : "2, With Thrusters"), new Vector2(100, 65), Color.White);
+
+                */
+                _spriteBatch.DrawString(_font, "Challenge Mode!", new Vector2(100, 15), Color.Yellow);
+                _spriteBatch.DrawString(_font, "Phase: " + (_challengePhaseOne ? "1, No Thrusters" : "2, With Thrusters"), new Vector2(100, 65), Color.White);
 
                 //position for score counter
                 Vector2 scorePosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, -20); //will figure out how i want to score this later, then move this into the visible area of teh screen lmao!
