@@ -70,10 +70,27 @@ namespace BowThrust_MonoGame
             _rotation = 0f;
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
-
             _origin = new Vector2(0, _frameWidth / 2);
-
             _scoreManager = scoreManager;
+
+            UpdateHitbox(); //calculated hitbox upon load so no garbage values decide to appear
+        }
+
+        private void UpdateHitbox()
+        {
+            float Width = _frameWidth;
+            float halfHeight = _frameHeight / 5;
+
+            Vector2 topLeft = new Vector2(0, -halfHeight);
+            Vector2 topRight = new Vector2(Width, -halfHeight);
+            Vector2 bottomLeft = new Vector2(0, halfHeight);
+            Vector2 bottomRight = new Vector2(Width, halfHeight);
+
+            Matrix rotationMatrix = Matrix.CreateRotationZ(_rotation);
+            _hitboxCorners[0] = Vector2.Transform(topLeft, rotationMatrix) + _position;
+            _hitboxCorners[1] = Vector2.Transform(topRight, rotationMatrix) + _position;
+            _hitboxCorners[2] = Vector2.Transform(bottomLeft, rotationMatrix) + _position;
+            _hitboxCorners[3] = Vector2.Transform(bottomRight, rotationMatrix) + _position;
         }
 
         //boat texture/sprite sheet setup
@@ -107,12 +124,6 @@ namespace BowThrust_MonoGame
             if (!IsCollisionAtPosition(newPosition, tileMap))
             {
                 _position = newPosition;
-
-                //check if the tile is end tile
-                if (IsEndTileAtPosition(_position, tileMap))
-                {
-                    Console.WriteLine("Ship reached the end tile! Triggering end screen.");
-                }
             }
             else
             {
@@ -145,8 +156,6 @@ namespace BowThrust_MonoGame
 
             //have to store previous key state for toggling
             _previousKeyboardState = keyboardState;
-
-            //Console.WriteLine($"Ship Position in Update: {_position}");
         }
 
         //forward acceleration and deceleration
@@ -194,6 +203,8 @@ namespace BowThrust_MonoGame
 
             bool isColliding = false;
 
+
+            
             foreach (Vector2 corner in _hitboxCorners)
             {
                 if (tileMap.IsCollisionTile(corner))
@@ -229,15 +240,11 @@ namespace BowThrust_MonoGame
                 int tileX = (int)(corner.X / tileMap.TileSize);
                 int tileY = (int)(corner.Y / tileMap.TileSize);
 
-                //Console.WriteLine($"Checking End Tile at ({tileX}, {tileY})");
-
                 if (tileX < 0 || tileX >= tileMap.Width || tileY < 0 || tileY >= tileMap.Height)
                     continue; //skip out-of-bounds corners
 
                 int tileID = tileMap.Map[tileY, tileX];
                 bool isEnd = tileMap.GetTile(tileID).IsEndTile;
-
-                //Console.WriteLine($"Tile ID: {tileID}, IsEndTile: {isEnd}");
 
                 if (isEnd)
                     return true; //if one corner is on the end tile
@@ -245,7 +252,6 @@ namespace BowThrust_MonoGame
 
             return false;
         }
-
 
         //sprite sheet animation
         protected void UpdateAnimation(GameTime gameTime)

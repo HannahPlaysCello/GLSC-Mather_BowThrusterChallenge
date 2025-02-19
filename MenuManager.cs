@@ -30,13 +30,11 @@ namespace BowThrust_MonoGame
             {
                 _selectedOption = (_selectedOption - 1 + _options.Length) % _options.Length;  //navigate up
                 _isKeyPressed = true;
-                Console.WriteLine("navigated up");
             }
             if (keyboardState.IsKeyDown(controlKeyMap["MenuDown"]) && !_isKeyPressed)
             {
                 _selectedOption = (_selectedOption + 1) % _options.Length;  //navigate down
                 _isKeyPressed = true;
-                Console.WriteLine("navigated down");
             }
             if (keyboardState.IsKeyUp(controlKeyMap["MenuUp"]) && keyboardState.IsKeyUp(controlKeyMap["MenuDown"]))
             {

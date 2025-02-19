@@ -199,10 +199,7 @@ public class Game1 : Game
         // ship placement on screen
         _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-        
-        Console.WriteLine($"Initial Ship Position: {_ship.Position}");
-        Console.WriteLine($"Initial ShipWThrusters Position: {_shipWThrusters.Position}");
-        
+
         ResetTileMap();
         
         base.Initialize();
@@ -341,36 +338,18 @@ public class Game1 : Game
 
         else if (_currentState == GameState.Challenge)
         {
-            Console.WriteLine("challenge mode phase " + (_challengePhaseOne ? "1" : "2"));
-
             if (!_challengeComplete) //allow gameplay if not done
             {
                 if (_challengePhaseOne)
                 {
-                    Console.WriteLine("update _ship");
 
-                    //_ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
-                    if (_ship == null)
-                        Console.WriteLine("_ship is null before update");
-                    else
-                        _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
+                    _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
 
 
                     if (_ship != null && _ship.IsEndTileAtPosition(_ship.Position, _tileMap))
                     {
-                        Console.WriteLine("ship reached end tile");
                         _challengeCollisionNoThrusters = _scoreManager.Collisions;
                         _scoreManager.ResetScore();
-                        //_challengePhaseOne = false;
-                        if (_scoreManager == null)
-                            Console.WriteLine("SCORE MANAGER IS NULL");
-                        else 
-                            Console.WriteLine("score manager exists");
-                        
-                        if (_boatTexture == null)
-                            Console.WriteLine("boattexture is null");
-                        else
-                            Console.WriteLine("boat texture still exists");
 
                         _transitionMessage = ($"You finished round 1 with {_challengeCollisionNoThrusters}collisions!\nPress space to continue");
                         _currentState = GameState.ChallengeTransition;
@@ -411,7 +390,6 @@ public class Game1 : Game
                 _overlayAlpha = 0f; //rest overlay for next time (duh im so good at making the same mistake over and over again)
                 _currentState = GameState.Challenge; //resume game
                 _challengePhaseOne = false; //resume in trhuster mode
-                //_scoreManager.ResetScore(); didn't work
                 _ship = null;
                 _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                 _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
