@@ -111,6 +111,12 @@
 /processorParam:TextureFormat=Color
 /build:RedEndTile.png
 
+#begin Riverboat_Shuffle_-_Bix_Beiderbecke_and_Wolverine_Orchestra_1924.ogg
+/importer:OggImporter
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Riverboat_Shuffle_-_Bix_Beiderbecke_and_Wolverine_Orchestra_1924.ogg
+
 #begin SolidBlueWater.png
 /importer:TextureImporter
 /processor:TextureProcessor

@@ -1,12 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 
 using System.IO;
 using System.Text.Json;
 using BowThrusterChallenge.Settings;
 using System;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework.Audio;
 //using System.Drawing;
 
 namespace BowThrust_MonoGame;
@@ -72,6 +74,11 @@ public class Game1 : Game
 
     //fonts
     private SpriteFont _font;
+
+    //sounds
+    private Song _gameplayMusic;
+    //private Song _manuMusic; //not going to implement this one right exactly now
+    private bool _isPlayingGameMusic = false;
 
 
 
@@ -225,16 +232,19 @@ public class Game1 : Game
 
         _menuManager = new MenuManager(_font);
 
+        _gameplayMusic = Content.Load<Song>("Riverboat_Shuffle_-_Bix_Beiderbecke_and_Wolverine_Orchestra_1924");
+        if (_gameplayMusic == null)
+            Console.WriteLine("no music :(");
     }
 
     //
     protected override void Update(GameTime gameTime)
     {
-        //prevent boat movement from triggering when dismissing challenge transition screen
+        //debounce
         if (_inputDelayTimer > 0)
         {
             _inputDelayTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-            return; // Skip input processing until delay expires
+            return; //skip input processing until delay expires
         }
 
         KeyboardState keyboardState = Keyboard.GetState();
@@ -259,21 +269,39 @@ public class Game1 : Game
             Exit();
         //reset button -- gotta add this to everywhere instead of the stupid menu button  
         if (keyboardState.IsKeyDown(_controlKeyMap["Restart"]))
+        {
+            _currentState = GameState.Menu;
+
+            if (_ship != null) _ship = null;
+            if (_shipWThrusters != null) _shipWThrusters = null;
+
+            _challengeComplete = false;
+            _challengePhaseOne = true;
+
+            _scoreManager.ResetScore();
+            _challengeCollisionNoThrusters = 0;
+            _challengeCollisionWThrusters = 0;
+
+            ResetTileMap();
+        }
+
+        if (_currentState == GameState.Practice || _currentState == GameState.Challenge || _currentState == GameState.ChallengeTransition || _currentState == GameState.GameOver)
+        {
+            if (!_isPlayingGameMusic) 
             {
-                _currentState = GameState.Menu;
-
-                if (_ship != null) _ship = null;
-                if (_shipWThrusters != null) _shipWThrusters = null;
-
-                _challengeComplete = false;
-                _challengePhaseOne = true;
-
-                _scoreManager.ResetScore();
-                _challengeCollisionNoThrusters = 0;
-                _challengeCollisionWThrusters = 0;
-
-                ResetTileMap();
+                MediaPlayer.Stop(); //stop other things first
+                MediaPlayer.Play(_gameplayMusic);
+                MediaPlayer.IsRepeating = true;
+                _isPlayingGameMusic = true;
             }
+        }
+        else if (_currentState == GameState.Menu || _currentState == GameState.StartScreen)
+            if (_isPlayingGameMusic) 
+            {
+                MediaPlayer.Stop();
+                _isPlayingGameMusic = false;
+            }
+
 
         //game states
         if (_currentState == GameState.StartScreen)
@@ -402,9 +430,9 @@ public class Game1 : Game
                 _overlayAlpha = 0f; //rest overlay for next time (duh im so good at making the same mistake over and over again)
                 _currentState = GameState.Challenge; //resume game
                 _challengePhaseOne = false; //resume in trhuster mode
-                _ship = null;
                 _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
                 _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
+                _ship = null;
 
                 _inputDelayTimer = _inputDelayDuration; //prevent the spacebar dismiss of overlay triggering boat movement in thruster mode
             }
