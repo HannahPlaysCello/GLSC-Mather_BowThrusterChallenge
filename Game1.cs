@@ -15,13 +15,14 @@ namespace BowThrust_MonoGame;
 
 public class Game1 : Game
 {
-    //get files
+    //get classes from other files
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private Settings _settings;
     private Ship _ship;
     private ShipWThrusters _shipWThrusters;
     private Texture2D _boatTexture;
+    private Camera _camera; //test! camera for side scroll
 
     //window set-up
     private int screenWidth;
@@ -215,6 +216,8 @@ public class Game1 : Game
         ResetTileMap();
         
         base.Initialize();
+
+        _camera = new Camera(screenWidth, screenHeight); //test camera for side scroll
 
         _graphics.ApplyChanges();  
     }
@@ -477,7 +480,7 @@ public class Game1 : Game
         else if (_currentState == GameState.Practice)
         {
             //draw the background
-            _tileMap.Draw(_spriteBatch);
+            _tileMap.Draw(_spriteBatch, _camera);
             //draw the correct ship
             if (_useThrusters && _shipWThrusters != null)
                 _shipWThrusters.Draw(_spriteBatch);
@@ -510,7 +513,7 @@ public class Game1 : Game
         {
             if (!_challengeComplete)
             {
-                _tileMap.Draw(_spriteBatch);
+                _tileMap.Draw(_spriteBatch, _camera);
 
                 if (_challengePhaseOne && _ship != null)
                 {
@@ -555,7 +558,7 @@ public class Game1 : Game
         else if (_currentState == GameState.ChallengeTransition)
         {
             //keep map and boat
-            _tileMap.Draw(_spriteBatch);
+            _tileMap.Draw(_spriteBatch, _camera);
             if (_challengePhaseOne && _ship != null)
                 _ship.Draw(_spriteBatch);
             else if (!_challengePhaseOne && _shipWThrusters != null)

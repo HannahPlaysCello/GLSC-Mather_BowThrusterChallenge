@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using BowThrust_MonoGame;
+using Newtonsoft.Json.Serialization;
 
 public class TileMap
 {
@@ -13,6 +14,10 @@ public class TileMap
     public int Height { get; private set; }
     public int[,] Map { get; private set; }
     public int TileSize { get; private set; }
+
+    //world size
+    public int WorldWidth => Width * TileSize;
+    public int WorldHeight => Height * TileSize;
 
     //stores tile definitions loaded from JSON
     private Dictionary<int, Tiles> _tileDefinitions;
@@ -46,18 +51,29 @@ public class TileMap
         return _tileDefinitions[tileID];
     }
 
-    public void Draw(SpriteBatch spriteBatch)
+    //convert world position to screen position
+    public Vector2 WorldToScreenPosition(Vector2 worldPosition, Camera camera)
     {
-        for (int y = 0; y < Height; y++)
-        {
-            for (int x = 0; x < Width; x++)
-            {
-                int tileID = Map[y, x];
-                Tiles tile = GetTile(tileID);
-                Vector2 position = new Vector2(x * TileSize, y * TileSize);
-                float scale = (float)TileSize / tile.TileTexture.Width;  //Assuming base tile size is 64 
+        return worldPosition - camera.Position;
+    }
 
-                spriteBatch.Draw(tile.TileTexture, position, null, Color.White, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+    public void Draw(SpriteBatch spriteBatch, Camera camera)
+    {
+        int startX = (int)(camera.Position.X / TileSize);
+        int startY = (int)(camera.Position.Y / TileSize);
+        int endX = startX + (camera.ScreenWidth / TileSize) + 2;
+        int endY = startY + (camera.ScreenHeight / TileSize) + 2;
+
+        for (int y = startY; y < endY; y++)
+        {
+            for (int x = startX; x < endX; x++)
+            {
+                if (x >= 0 && x < Width && y >= 0 && y < Height)
+                {
+                    Vector2 worldPosition = new Vector2(x * TileSize, y * TileSize);
+                    Vector2 screenPosition = WorldToScreenPosition(worldPosition, camera);
+                    spriteBatch.Draw(GetTile(Map[y, x]).TileTexture, screenPosition, Color.White);
+                }
             }
         }
     }
