@@ -13,7 +13,7 @@ namespace BowThrust_MonoGame
         protected Texture2D _pixelTexture;
 
         //permanent starts here
-        protected Texture2D _boatTexture;
+        protected Texture2D BoatTexture;
         protected Vector2 _position;  //ship position
         protected Vector2 _origin;    //what boat rotates around :)
 
@@ -96,7 +96,7 @@ namespace BowThrust_MonoGame
         //boat texture/sprite sheet setup
         public void LoadContent(Texture2D boatTexture, GraphicsDevice graphicsDevice)
         {
-            _boatTexture = boatTexture;
+            BoatTexture = boatTexture;
             _sourceRectangle = new Rectangle(0, 0, _frameWidth, _frameHeight);
             
             //temporary rectangle for debug
@@ -282,7 +282,7 @@ namespace BowThrust_MonoGame
         {
             float scale = 1f;
             //crashes here
-            spriteBatch.Draw(_boatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
+            spriteBatch.Draw(BoatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
         
             //temporary draw hitbox for debug
             for (int i = 0; i < 4; i++)

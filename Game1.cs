@@ -16,20 +16,21 @@ namespace BowThrust_MonoGame;
 public class Game1 : Game
 {
     //get classes from other files
-    private GraphicsDeviceManager _graphics;
+    public GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private Settings _settings;
-    private Ship _ship;
-    private ShipWThrusters _shipWThrusters;
-    private Texture2D _boatTexture;
-    private Camera _camera; //test! camera for side scroll
+    public Ship _ship;
+    public ShipWThrusters _shipWThrusters;
+    public Texture2D BoatTexture;
+    public Camera _camera; //test! camera for side scroll
 
     //window set-up
-    private int screenWidth;
-    private int screenHeight;
+    public int screenWidth;
+    public int screenHeight;
     private Microsoft.Xna.Framework.Color _backgroundColor;
 
     //game modes
+    public GameStateManager StateManager { get; private set; }
     private enum GameState 
     {
         StartScreen,
@@ -39,42 +40,45 @@ public class Game1 : Game
         ChallengeTransition,
         GameOver
     }
-    private GameState _currentState = GameState.StartScreen; //state to load on start-up
-    private bool _useThrusters = false;
+    //private GameState CurrentState = GameState.StartScreen; //state to load on start-up
+    public bool _useThrusters = false;
 
     //inputs
-    private Dictionary<String, Keys> _controlKeyMap;
+    public Dictionary<String, Keys> ControlKeyMap;
 
     //tile map set-up
-    private TileMap _tileMap;
+    public TileMap TileMap { get; private set; }
+    //private TileMap _tileMap;
     private int desiredTileSize = 32;
 
     //score
-    private ScoreManager _scoreManager;
+    public ScoreManager _scoreManager;
 
     //menu
-    private MenuManager _menuManager;
+    public MenuManager MenuManager { get; private set; }
+    //private MenuManager _menuManager;
 
     //timeout 
     private float idleTime = 0f;
     private const float timeOutLen = 45f;
-    private bool inGame = false;
+    public bool inGame = false;
 
     //keep track of challenge Mode
-    private bool _challengePhaseOne = true; //start in normal mode without thrsuters
-    private int _challengeCollisionNoThrusters = 0; //score for no thrusters
-    private int _challengeCollisionWThrusters = 0; //score for thrusters
-    private bool _challengeComplete = false; //results screen
-    private string _transitionMessage = ""; //to store different strings based on different phases
-    private float _overlayAlpha = 0f; //transparency level for phase transition
-    private const float _overlayFadeSpeed = 1.5f; //change this value for how fast transition screen fades in
+    public bool _challengePhaseOne = true; //start in normal mode without thrsuters
+    public int _challengeCollisionNoThrusters = 0; //score for no thrusters
+    public int _challengeCollisionWThrusters = 0; //score for thrusters
+    public bool _challengeComplete = false; //results screen
+    public string _transitionMessage = ""; //to store different strings based on different phases
+    public float _overlayAlpha = 0f; //transparency level for phase transition
+    public float _overlayFadeSpeed = 1.5f; //change this value for how fast transition screen fades in
     
     //input debouncer. Used only in challenge transition state right now
-    private float _inputDelayTimer = 0f;
-    private const float _inputDelayDuration = 0.2f;
+    public float _inputDelayTimer = 0f;
+    public float _inputDelayDuration = 0.2f;
 
     //fonts
-    private SpriteFont _font;
+    public SpriteFont Font { get; private set; }
+    //private SpriteFont _font;
 
     //sounds
     private Song _gameplayMusic;
@@ -125,7 +129,7 @@ public class Game1 : Game
             _settings.BackgroundColor.A
         );
 
-        _controlKeyMap = new Dictionary<string, Keys>
+        ControlKeyMap = new Dictionary<string, Keys>
         {
             { "Go", ParseKeyFromString(_settings.Controls.Go) },
             { "RudderLeft", ParseKeyFromString(_settings.Controls.RudderLeft) },
@@ -197,8 +201,8 @@ public class Game1 : Game
     //control tile map
     private void ResetTileMap()
     {
-        _tileMap = new TileMap();
-        _tileMap.LoadFromJson(Content, "Content/TileMapSimple.json", "Content/Tiles.json", desiredTileSize);
+        TileMap = new TileMap();
+        TileMap.LoadFromJson(Content, "Content/TileMapSimple.json", "Content/Tiles.json", desiredTileSize);
     }
 
     //
@@ -214,12 +218,17 @@ public class Game1 : Game
         _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
 
         ResetTileMap();
+
+        StateManager = new GameStateManager(new StartScreenState(null, this));
+        StateManager.ChangeState( new StartScreenState(StateManager, this));
         
         base.Initialize();
 
         _camera = new Camera(screenWidth, screenHeight); //test camera for side scroll
 
         _graphics.ApplyChanges();  
+
+
     }
 
     //game content
@@ -228,16 +237,15 @@ public class Game1 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
         //boat texture (boat sprite sheet) from ship.cs
-        _boatTexture = Content.Load<Texture2D>("MatherV2-NoBack-WithCorners"); 
-        _font = Content.Load<SpriteFont>("MenuFont");
+        BoatTexture = Content.Load<Texture2D>("MatherV2-NoBack-WithCorners"); 
+        Font = Content.Load<SpriteFont>("MenuFont");
 
-        _scoreManager = new ScoreManager(_font);
+        _scoreManager = new ScoreManager(Font);
 
-        _menuManager = new MenuManager(_font);
+        MenuManager = new MenuManager(Font);
 
         _gameplayMusic = Content.Load<Song>("Riverboat_Shuffle_-_Bix_Beiderbecke_and_Wolverine_Orchestra_1924");
-        if (_gameplayMusic == null)
-            Console.WriteLine("no music :(");
+
     }
 
     //
@@ -251,6 +259,9 @@ public class Game1 : Game
         }
 
         KeyboardState keyboardState = Keyboard.GetState();
+        //close game from any screen!
+        if (keyboardState.IsKeyDown(ControlKeyMap["Close"]))
+            Exit();
 
         //idle timer
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -264,195 +275,35 @@ public class Game1 : Game
         }
         if (idleTime >= timeOutLen && inGame)
         {
-            _currentState = GameState.StartScreen;
+            StateManager.ChangeState(new StartScreenState(StateManager, this));
+            idleTime = 0f;
         }
 
-        //close game from any screen!
-        if (keyboardState.IsKeyDown(_controlKeyMap["Close"]))
-            Exit();
-        //reset button -- gotta add this to everywhere instead of the stupid menu button  
-        if (keyboardState.IsKeyDown(_controlKeyMap["Restart"]))
+        //play music!
+        if (StateManager.CurrentState is PracticeState 
+            || StateManager.CurrentState is ChallengeState 
+            || StateManager.CurrentState is ChallengeTransitionState 
+            || StateManager.CurrentState is PracticeGameOverState
+            || StateManager.CurrentState is ChallengeGameOverState)
         {
-            _currentState = GameState.Menu;
-
-            if (_ship != null) _ship = null;
-            if (_shipWThrusters != null) _shipWThrusters = null;
-
-            _challengeComplete = false;
-            _challengePhaseOne = true;
-
-            _scoreManager.ResetScore();
-            _challengeCollisionNoThrusters = 0;
-            _challengeCollisionWThrusters = 0;
-
-            ResetTileMap();
-        }
-
-        if (_currentState == GameState.Practice || _currentState == GameState.Challenge || _currentState == GameState.ChallengeTransition || _currentState == GameState.GameOver)
-        {
-            if (!_isPlayingGameMusic) 
+            if (!_isPlayingGameMusic)
             {
-                MediaPlayer.Stop(); //stop other things first
+                MediaPlayer.Stop(); // Stop any previous music (optional)
                 MediaPlayer.Play(_gameplayMusic);
                 MediaPlayer.IsRepeating = true;
                 _isPlayingGameMusic = true;
             }
         }
-        else if (_currentState == GameState.Menu || _currentState == GameState.StartScreen)
-            if (_isPlayingGameMusic) 
+        else // For states like StartScreen or Menu
+        {
+            if (_isPlayingGameMusic)
             {
                 MediaPlayer.Stop();
                 _isPlayingGameMusic = false;
             }
-
-
-        //game states
-        if (_currentState == GameState.StartScreen)
-        {
-            inGame = false;
-            if (keyboardState.IsKeyDown(Keys.Space))
-            {
-                _currentState = GameState.Menu;
-                inGame = true;
-            }
         }
 
-        else if (_currentState == GameState.Menu)
-        {
-            bool startGame = _menuManager.Update(keyboardState, _controlKeyMap);
-
-            if (startGame)
-            {
-                //modified to include more than 2 options (why did i make this difficult for myself)
-                if (_menuManager.GetSelectedOption() == 0) //normal mode
-                {
-                    _useThrusters = false;
-                    _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-                    _ship.LoadContent(_boatTexture, GraphicsDevice);
-                    _currentState = GameState.Practice;
-                }
-                else if (_menuManager.GetSelectedOption() == 1) //thrusters
-                {
-                    _useThrusters = true;
-                    _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-                    _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
-                    _currentState = GameState.Practice;
-                }
-                else if (_menuManager.GetSelectedOption() == 2) //challenge
-                {
-                    _currentState = GameState.Challenge;
-                    _challengePhaseOne = true; //start in normal mode
-                    _challengeComplete = false;
-                    _scoreManager.ResetScore();
-
-                    //load ship for normal mode
-                    _ship = new Ship(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-                    _ship.LoadContent(_boatTexture, GraphicsDevice);
-                }
-            }
-        }
-
-        else if (_currentState == GameState.Practice)
-        {
-
-            if (keyboardState.IsKeyDown(_controlKeyMap["Menu"]))
-            {
-                _currentState = GameState.Menu;
-
-                _ship = null;
-                _shipWThrusters = null;
-            }
-            // Update the selected ship
-            if (_useThrusters && _shipWThrusters != null)
-                _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
-            else if (!_useThrusters && _ship !=null)
-                _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
-        
-            //send to end screen
-            if (_useThrusters && _shipWThrusters != null && _shipWThrusters.IsEndTileAtPosition(_shipWThrusters.Position, _tileMap))
-            {
-                _currentState = GameState.GameOver;
-            }
-            else if (!_useThrusters && _ship != null && _ship.IsEndTileAtPosition(_ship.Position, _tileMap))
-            {
-                _currentState = GameState.GameOver;
-            }
-        }
-
-        else if (_currentState == GameState.Challenge)
-        {
-            if (!_challengeComplete) //allow gameplay if not done
-            {
-                if (_challengePhaseOne)
-                {
-
-                    _ship.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
-
-
-                    if (_ship != null && _ship.IsEndTileAtPosition(_ship.Position, _tileMap))
-                    {
-                        _challengeCollisionNoThrusters = _scoreManager.Collisions;
-                        _scoreManager.ResetScore();
-
-                        _transitionMessage = ($"You finished round 1 with {_challengeCollisionNoThrusters} collisions!\nPress space to continue");
-                        _currentState = GameState.ChallengeTransition;
-                    }
-                }
-
-                else //thrusters
-                {
-                    _shipWThrusters.Update(gameTime, keyboardState, _controlKeyMap, _tileMap);
-                    if (_shipWThrusters != null && _shipWThrusters.IsEndTileAtPosition(_shipWThrusters.Position, _tileMap))
-                    {
-                        _challengeCollisionWThrusters = _scoreManager.Collisions;
-                        _challengeComplete = true; //go to resutls screen
-                    }
-                }
-            }
-
-
-
-            //i want this to work at all times, altho this will have to stay on backend or add reset button. will have to remove this block in subroutines so im not duplicating
-            /*else 
-            {
-                if (keyboardState.IsKeyDown(_controlKeyMap["Restart"]))
-                {
-                    _currentState = GameState.Menu;
-                    _ship = null;
-                    _shipWThrusters = null;
-                    _scoreManager.ResetScore();
-                }
-            }*/
-        }
-
-        else if (_currentState == GameState.ChallengeTransition)
-        {
-            _overlayAlpha = Math.Min(_overlayAlpha + (_overlayFadeSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds), 1f);
-            if (keyboardState.IsKeyDown(_controlKeyMap["Go"])) //make this read from key dictionary 
-            {
-                _overlayAlpha = 0f; //rest overlay for next time (duh im so good at making the same mistake over and over again)
-                _currentState = GameState.Challenge; //resume game
-                _challengePhaseOne = false; //resume in trhuster mode
-                _shipWThrusters = new ShipWThrusters(new Vector2(0, screenHeight / 2), screenWidth, screenHeight, _scoreManager);
-                _shipWThrusters.LoadContent(_boatTexture, GraphicsDevice);
-                _ship = null;
-
-                _inputDelayTimer = _inputDelayDuration; //prevent the spacebar dismiss of overlay triggering boat movement in thruster mode
-            }
-        }
-
-        else if (_currentState == GameState.GameOver)
-        {
-            if (keyboardState.IsKeyDown(_controlKeyMap["Restart"]))
-            {
-                _scoreManager.ResetScore(); //reset score
-                _ship = null; //clear the ships
-                _shipWThrusters = null;
-                _currentState = GameState.Menu; //go to menu
-            }
-        }
-
-        base.Update(gameTime);
+        StateManager.Update(gameTime, keyboardState);
     }
 
     //
@@ -462,125 +313,7 @@ public class Game1 : Game
 
         _spriteBatch.Begin();
 
-        if (_currentState == GameState.StartScreen)
-        {
-            string message = "Press spacebar to start";
-            Vector2 textSize = _font.MeasureString(message);
-            Vector2 textPosition = new Vector2(
-                (GraphicsDevice.Viewport.Width - textSize.X) / 2,
-                (GraphicsDevice.Viewport.Height - textSize.Y) / 2
-            );
-            _spriteBatch.DrawString(_font, message, textPosition, Color.White);
-        }
-        else if (_currentState == GameState.Menu)
-        {
-            _menuManager.Draw(_spriteBatch);
-            //GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
-        }
-        else if (_currentState == GameState.Practice)
-        {
-            //draw the background
-            _tileMap.Draw(_spriteBatch, _camera);
-            //draw the correct ship
-            if (_useThrusters && _shipWThrusters != null)
-                _shipWThrusters.Draw(_spriteBatch);
-            else if (!_useThrusters && _ship != null)
-                _ship.Draw(_spriteBatch);
-            //drawing stuff on the playing screen TEMP THIS WILL GO IN ANOTHER FILE 
-            //instructions
-            string menuText = "Press M to return to menu";
-            string controlsText1 = "SPACE: Start/Stop | A: Left | D: Right";
-            string controlsText2 = "<-: Left Thruster | ->: Right Thruster";
-            //size for instructions
-            Vector2 textSize = _font.MeasureString(menuText);
-            Vector2 controlsText1Size = _font.MeasureString(controlsText1);
-            Vector2 controlsText2Size = _font.MeasureString(controlsText2);
-            //position for instrucitons
-            Vector2 menuPosition = new Vector2(screenWidth - textSize.X - 10, screenHeight - textSize.Y - 10);
-            Vector2 controlsPosition1 = new Vector2(screenWidth - controlsText1Size.X - 10, menuPosition.Y - controlsText1Size.Y - 5);
-            Vector2 controlsPosition2 = new Vector2(screenWidth - controlsText2Size.X - 10, controlsPosition1.Y - controlsText2Size.Y - 5);
-            //draw instructions
-            _spriteBatch.DrawString(_font, menuText, menuPosition, Microsoft.Xna.Framework.Color.LightGray);
-            _spriteBatch.DrawString(_font, controlsText1, controlsPosition1, Microsoft.Xna.Framework.Color.LightGray);
-            _spriteBatch.DrawString(_font, controlsText2, controlsPosition2, Microsoft.Xna.Framework.Color.LightGray);
-            //position for score counter
-            Vector2 scorePosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, -20); //will figure out how i want to score this later, then move this into the visible area of teh screen lmao!
-            Vector2 collisionPosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, 15);
-            //draw collision counter
-            _scoreManager.Draw(_spriteBatch, scorePosition, collisionPosition);
-        }
-        else if (_currentState == GameState.Challenge)
-        {
-            if (!_challengeComplete)
-            {
-                _tileMap.Draw(_spriteBatch, _camera);
-
-                if (_challengePhaseOne && _ship != null)
-                {
-                    _ship.Draw(_spriteBatch);
-                }
-                else if (!_challengePhaseOne && _shipWThrusters != null)
-                {
-                    _shipWThrusters.Draw(_spriteBatch);
-                }
-
-                /*
-                if (_challengePhaseOne)
-                    _ship.Draw(_spriteBatch);
-                else
-                    _shipWThrusters.Draw(_spriteBatch);
-
-                */
-                _spriteBatch.DrawString(_font, "Challenge Mode!", new Vector2(100, 15), Color.Yellow);
-                _spriteBatch.DrawString(_font, "Phase: " + (_challengePhaseOne ? "1, No Thrusters" : "2, With Thrusters"), new Vector2(100, 65), Color.White);
-
-                //position for score counter
-                Vector2 scorePosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, -20); //will figure out how i want to score this later, then move this into the visible area of teh screen lmao!
-                Vector2 collisionPosition = new Vector2(_graphics.PreferredBackBufferWidth - 400, 15);
-                //draw collision counter
-                _scoreManager.Draw(_spriteBatch, scorePosition, collisionPosition);
-            }
-            else 
-            {
-                //results
-                _spriteBatch.DrawString(_font, "Challenge Mode Complete!", new Vector2(300, 150), Color.LimeGreen);
-                _spriteBatch.DrawString(_font, $"Collisions without Thrusters: {_challengeCollisionNoThrusters}", new Vector2(300, 200), Color.White);
-                _spriteBatch.DrawString(_font, $"Collisions with Thrusters: {_challengeCollisionWThrusters}", new Vector2(300, 250), Color.White);
-
-                string resultMessage = _challengeCollisionWThrusters < _challengeCollisionNoThrusters
-                    ? "Thrusters improved your navigation!" 
-                    : "Try again, thrusters should help!";
-
-                _spriteBatch.DrawString(_font, resultMessage, new Vector2(300, 300), Color.Yellow);
-                _spriteBatch.DrawString(_font, "Press R to return to menu", new Vector2(300, 350), Color.Gray);
-            }
-        }
-        else if (_currentState == GameState.ChallengeTransition)
-        {
-            //keep map and boat
-            _tileMap.Draw(_spriteBatch, _camera);
-            if (_challengePhaseOne && _ship != null)
-                _ship.Draw(_spriteBatch);
-            else if (!_challengePhaseOne && _shipWThrusters != null)
-                _shipWThrusters.Draw(_spriteBatch);
-            //overlay for message
-            Texture2D overlayTexture = new Texture2D(GraphicsDevice, 1, 1);
-            overlayTexture.SetData(new[] { new Color(0, 0, 0, (int)(200 * _overlayAlpha)) });
-            _spriteBatch.Draw(overlayTexture, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
-            //write message
-            string message = _transitionMessage;
-            Vector2 textSize = _font.MeasureString(message);
-            Vector2 textPosition = new Vector2(
-                (GraphicsDevice.Viewport.Width - textSize.X) / 2,
-                (GraphicsDevice.Viewport.Height - textSize.Y) / 2
-            );
-            _spriteBatch.DrawString(_font, message, textPosition, Color.Yellow);
-        }
-        else if (_currentState == GameState.GameOver)
-        {
-            _spriteBatch.DrawString(_font, "Congratulations! You've reached the goal!", new Vector2(300, 200), Color.LimeGreen);
-            _spriteBatch.DrawString(_font, "Press R to restart", new Vector2(300, 250), Color.White);
-        }
+        StateManager.Draw(_spriteBatch);
 
         _spriteBatch.End();
         base.Draw(gameTime);

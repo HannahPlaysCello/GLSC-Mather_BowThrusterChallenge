@@ -8,14 +8,14 @@ namespace BowThrust_MonoGame
 {
     public class MenuManager
     {
-        private SpriteFont _font;
+        private SpriteFont Font;
         private int _selectedOption = 0;
         private bool _isKeyPressed = false;
         private string[] _options = { "Normal Mode", "Thruster Mode", "Challenge Mode" };
 
         public MenuManager(SpriteFont font)
         {
-            _font = font;
+            Font = font;
         }
 
         public int GetSelectedOption()
@@ -49,13 +49,13 @@ namespace BowThrust_MonoGame
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.DrawString(_font, "Choose Boat Mode:", new Vector2(300, 200), Color.Red);
+            spriteBatch.DrawString(Font, "Choose Boat Mode:", new Vector2(300, 200), Color.Red);
             for (int i = 0; i < _options.Length; i++)
             {
                 Color color = (_selectedOption == i) ? Color.Yellow : Color.White;
-                spriteBatch.DrawString(_font, _options[i], new Vector2(300, 300 + (i * 50)), color);
+                spriteBatch.DrawString(Font, _options[i], new Vector2(300, 300 + (i * 50)), color);
             }
-            spriteBatch.DrawString(_font, "Press ENTER to select", new Vector2(300, 450), Microsoft.Xna.Framework.Color.Gray);
+            spriteBatch.DrawString(Font, "Press ENTER to select", new Vector2(300, 450), Microsoft.Xna.Framework.Color.Gray);
         }
     }
 }
