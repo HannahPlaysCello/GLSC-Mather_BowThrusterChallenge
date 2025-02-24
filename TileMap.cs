@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System;
 
 using BowThrust_MonoGame;
 using Newtonsoft.Json.Serialization;
@@ -59,21 +60,20 @@ public class TileMap
 
     public void Draw(SpriteBatch spriteBatch, Camera camera)
     {
-        int startX = (int)(camera.Position.X / TileSize);
-        int startY = (int)(camera.Position.Y / TileSize);
-        int endX = startX + (camera.ScreenWidth / TileSize) + 2;
-        int endY = startY + (camera.ScreenHeight / TileSize) + 2;
+        int startX = Math.Max(0, (int)(camera.Position.X / TileSize));
+        int startY = Math.Max(0, (int)(camera.Position.Y / TileSize));
+        int endX = Math.Min(Width, startX + camera.ScreenWidth / TileSize + 2);
+        int endY = Math.Min(Height, startY + camera.ScreenHeight / TileSize + 2);
 
         for (int y = startY; y < endY; y++)
         {
             for (int x = startX; x < endX; x++)
             {
-                if (x >= 0 && x < Width && y >= 0 && y < Height)
-                {
-                    Vector2 worldPosition = new Vector2(x * TileSize, y * TileSize);
-                    Vector2 screenPosition = WorldToScreenPosition(worldPosition, camera);
-                    spriteBatch.Draw(GetTile(Map[y, x]).TileTexture, screenPosition, Color.White);
-                }
+                int tileID = Map[y, x];
+                Tiles tile = GetTile(tileID);
+                Vector2 position = new Vector2(x * TileSize, y * TileSize) - camera.Position;
+
+                spriteBatch.Draw(tile.TileTexture, position, Color.White);
             }
         }
     }

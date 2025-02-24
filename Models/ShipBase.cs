@@ -130,26 +130,7 @@ namespace BowThrust_MonoGame
                 _currentSpeed = 0; //stof if collision!
             }
 
-            //keep ship within screen boundaries!
-            _position = BoundaryManager.ClampToBounds(_position, _screenWidth, _screenHeight, _frameWidth, _frameHeight);
-
-            //update hitbox
-            Vector2 hitboxRotate = _position; // Adjust based on sprite shape
-            float Width = _frameWidth;
-            float halfHeight = _frameHeight / 5;
-
-            // Define the four corners BEFORE rotation
-            Vector2 topLeft = new Vector2(0, -halfHeight);
-            Vector2 topRight = new Vector2(Width, -halfHeight);
-            Vector2 bottomLeft = new Vector2(0, halfHeight);
-            Vector2 bottomRight = new Vector2(Width, halfHeight);
-
-            // Rotate each point around the hitbox axis
-            Matrix rotationMatrix = Matrix.CreateRotationZ(_rotation);
-            _hitboxCorners[0] = Vector2.Transform(topLeft, rotationMatrix) + hitboxRotate;
-            _hitboxCorners[1] = Vector2.Transform(topRight, rotationMatrix) + hitboxRotate;
-            _hitboxCorners[2] = Vector2.Transform(bottomLeft, rotationMatrix) + hitboxRotate;
-            _hitboxCorners[3] = Vector2.Transform(bottomRight, rotationMatrix) + hitboxRotate;
+            UpdateHitbox();
 
             //update animation frames
             UpdateAnimation(gameTime);
@@ -203,8 +184,6 @@ namespace BowThrust_MonoGame
 
             bool isColliding = false;
 
-
-            
             foreach (Vector2 corner in _hitboxCorners)
             {
                 if (tileMap.IsCollisionTile(corner))
@@ -278,19 +257,21 @@ namespace BowThrust_MonoGame
         }
 
         //draw sprite :)
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Camera camera)
         {
             float scale = 1f;
             //crashes here
-            spriteBatch.Draw(BoatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
-        
+            //spriteBatch.Draw(BoatTexture, _position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
+            spriteBatch.Draw(BoatTexture, _position - camera.Position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
+
             //temporary draw hitbox for debug
             for (int i = 0; i < 4; i++)
             {
                 Vector2 start = _hitboxCorners[i];
                 Vector2 end = _hitboxCorners[(i + 1) % 4]; // Connect to the next point
 
-                DrawLine(spriteBatch, start, end, Color.Red);
+                DrawLine(spriteBatch, _hitboxCorners[i] - camera.Position, _hitboxCorners[(i + 1) % 4] - camera.Position, Color.Red);
+
             }
         }
     }

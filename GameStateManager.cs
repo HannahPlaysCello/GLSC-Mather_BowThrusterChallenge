@@ -46,6 +46,7 @@ namespace BowThrust_MonoGame
 
     //--------------------- state classes ----------------------
 
+    #region StartScreenState
     //start screen state: waits for player input (space bar atm)
     public class StartScreenState : IGameState
     {
@@ -79,7 +80,9 @@ namespace BowThrust_MonoGame
 
         public void Exit() { }
     }
+    #endregion
 
+    #region MenuState
     //Menu State: handles menu update logic
     public class MenuState : IGameState
     {
@@ -133,7 +136,9 @@ namespace BowThrust_MonoGame
 
         public void Exit() { }
     }
+    #endregion
 
+    #region PracticeState
     //practice state: updates the selected ship and checks for end tile collisions
     public class PracticeState : IGameState
     {
@@ -152,20 +157,12 @@ namespace BowThrust_MonoGame
 
         public void Update(GameTime gameTime, KeyboardState keyboardState)
         {
-            /*
-            if (keyboardState.IsKeyDown(_game.ControlKeyMap["Menu"]))
-            {
-                _game._ship = null;
-                _game._shipWThrusters = null;
-                _stateManager.ChangeState(new MenuState(_stateManager, _game));
-                return;
-            }
-            */
 
             //update the active ship
             if (_useThrusters && _game._shipWThrusters != null)
             {
                 _game._shipWThrusters.Update(gameTime, keyboardState, _game.ControlKeyMap, _game.TileMap);
+                _game._camera.Follow(_game._shipWThrusters.Position, _game.TileMap);
                 if (_game._shipWThrusters.IsEndTileAtPosition(_game._shipWThrusters.Position, _game.TileMap))
                 {
                     _stateManager.ChangeState(new PracticeGameOverState(_stateManager, _game));
@@ -174,6 +171,7 @@ namespace BowThrust_MonoGame
             else if (!_useThrusters && _game._ship != null)
             {
                 _game._ship.Update(gameTime, keyboardState, _game.ControlKeyMap, _game.TileMap);
+                _game._camera.Follow(_game._ship.Position, _game.TileMap);
                 if (_game._ship.IsEndTileAtPosition(_game._ship.Position, _game.TileMap))
                 {
                     _stateManager.ChangeState(new PracticeGameOverState(_stateManager, _game));
@@ -185,9 +183,13 @@ namespace BowThrust_MonoGame
         {
             _game.TileMap.Draw(spriteBatch, _game._camera);
             if (_useThrusters && _game._shipWThrusters != null)
-                _game._shipWThrusters.Draw(spriteBatch);
+                _game._shipWThrusters.Draw(spriteBatch, _game._camera);
             else if (!_useThrusters && _game._ship != null)
-                _game._ship.Draw(spriteBatch);
+                _game._ship.Draw(spriteBatch, _game._camera);
+
+            string practiceModeLabel = _useThrusters ? "Practice: With Thrusters" : "Practice: Without Thrusters";
+            Color labelColor = _useThrusters ? Color.YellowGreen : Color.GreenYellow;
+            spriteBatch.DrawString(_game.Font, practiceModeLabel, new Vector2(50, 15), labelColor);
 
             Vector2 scorePosition = new Vector2(_game.screenWidth - 400, -20);
             Vector2 collisionPosition = new Vector2(_game.screenWidth - 400, 15);
@@ -196,7 +198,9 @@ namespace BowThrust_MonoGame
 
         public void Exit() { }
     }
+    #endregion
 
+    #region ChallengeState
     //challenge state 
     public class ChallengeState : IGameState
     {
@@ -218,6 +222,7 @@ namespace BowThrust_MonoGame
                 if (_game._challengePhaseOne)
                 {
                     _game._ship.Update(gameTime, keyboardState, _game.ControlKeyMap, _game.TileMap);
+                    _game._camera.Follow(_game._ship.Position, _game.TileMap);
                     if (_game._ship != null && _game._ship.IsEndTileAtPosition(_game._ship.Position, _game.TileMap))
                     {
                         _game._challengeCollisionNoThrusters = _game._scoreManager.Collisions;
@@ -229,6 +234,7 @@ namespace BowThrust_MonoGame
                 else //thruster round
                 {
                     _game._shipWThrusters.Update(gameTime, keyboardState, _game.ControlKeyMap, _game.TileMap);
+                    _game._camera.Follow(_game._shipWThrusters.Position, _game.TileMap);
                     if (_game._shipWThrusters != null && _game._shipWThrusters.IsEndTileAtPosition(_game._shipWThrusters.Position, _game.TileMap))
                     {
                         _game._challengeCollisionWThrusters = _game._scoreManager.Collisions;
@@ -243,18 +249,24 @@ namespace BowThrust_MonoGame
         {
             _game.TileMap.Draw(spriteBatch, _game._camera);
             if (_game._challengePhaseOne && _game._ship != null)
-                _game._ship.Draw(spriteBatch);
+                _game._ship.Draw(spriteBatch, _game._camera);
             else if (!_game._challengePhaseOne && _game._shipWThrusters != null)
-                _game._shipWThrusters.Draw(spriteBatch);
+                _game._shipWThrusters.Draw(spriteBatch, _game._camera);
 
             Vector2 scorePosition = new Vector2(_game.screenWidth - 400, -20);
             Vector2 collisionPosition = new Vector2(_game.screenWidth - 400, 15);
             _game._scoreManager.Draw(spriteBatch, scorePosition, collisionPosition);
+
+            spriteBatch.DrawString(_game.Font, "Challenge Mode!", new Vector2(100, 15), Color.Yellow);
+            spriteBatch.DrawString(_game.Font, "Phase: " + (_game._challengePhaseOne ? "1, No Thrusters" : "2, With Thrusters"), 
+                new Vector2(100, 65), Color.White);
         }
 
         public void Exit() { }
     }
+    #endregion
 
+    #region ChallengeTransitionState
     //challenge transition state
     public class ChallengeTransitionState : IGameState
     {
@@ -288,9 +300,9 @@ namespace BowThrust_MonoGame
         {
             _game.TileMap.Draw(spriteBatch, _game._camera);
             if (_game._challengePhaseOne && _game._ship != null)
-                _game._ship.Draw(spriteBatch);
+                _game._ship.Draw(spriteBatch, _game._camera);
             else if (!_game._challengePhaseOne && _game._shipWThrusters != null)
-                _game._shipWThrusters.Draw(spriteBatch);
+                _game._shipWThrusters.Draw(spriteBatch, _game._camera);
 
             //draw overlay
             Texture2D overlayTexture = new Texture2D(_game.GraphicsDevice, 1, 1);
@@ -306,8 +318,10 @@ namespace BowThrust_MonoGame
 
         public void Exit() { }
     }
+    #endregion
 
     //game over states
+    #region PracticeGameOverState
     public class PracticeGameOverState : IGameState
     {
         private GameStateManager _stateManager;
@@ -334,7 +348,9 @@ namespace BowThrust_MonoGame
 
         public void Exit() { }
     }
+    #endregion
 
+    #region ChallengeGameOverState
     public class ChallengeGameOverState : IGameState
     {
         private GameStateManager _stateManager;
@@ -376,4 +392,5 @@ namespace BowThrust_MonoGame
 
         public void Exit() { }
     }
+    #endregion
 }

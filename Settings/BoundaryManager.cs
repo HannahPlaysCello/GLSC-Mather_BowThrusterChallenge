@@ -1,5 +1,7 @@
 using Microsoft.Xna.Framework;
 
+
+//may become obsolete with side-scrolling map!!!
 namespace BowThrust_MonoGame
 {
     public static class BoundaryManager
