@@ -321,13 +321,6 @@ namespace BowThrust_MonoGame
 
         public void Update(GameTime gameTime, KeyboardState keyboardState)
         {
-            if (keyboardState.IsKeyDown(_game.ControlKeyMap["Restart"]))
-            {
-                _game._scoreManager.ResetScore();
-                _game._ship = null;
-                _game._shipWThrusters = null;
-                _stateManager.ChangeState(new MenuState(_stateManager, _game));
-            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -355,13 +348,6 @@ namespace BowThrust_MonoGame
 
         public void Update(GameTime gameTime, KeyboardState keyboardState)
         {
-            if (keyboardState.IsKeyDown(_game.ControlKeyMap["Restart"]))
-            {
-                _game._scoreManager.ResetScore();
-                _game._ship = null;
-                _game._shipWThrusters = null;
-                _stateManager.ChangeState(new MenuState(_stateManager, _game));
-            }
         }
 
         public void Draw(SpriteBatch spriteBatch)

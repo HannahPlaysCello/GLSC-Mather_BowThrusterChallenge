@@ -198,6 +198,25 @@ public class Game1 : Game
         };
     } 
 
+    //restart game
+    private void ResetGame()
+    {
+        _scoreManager.ResetScore();
+        _ship = null;
+        _shipWThrusters = null;
+        
+        // Reset any challenge-related variables if necessary.
+        _challengePhaseOne = true;
+        _challengeComplete = false;
+        _challengeCollisionNoThrusters = 0;
+        _challengeCollisionWThrusters = 0;
+        _overlayAlpha = 0f;
+        _inputDelayTimer = 0f;
+        
+        // Switch back to the Menu state.
+        StateManager.ChangeState(new MenuState(StateManager, this));
+    }
+
     //control tile map
     private void ResetTileMap()
     {
@@ -262,6 +281,14 @@ public class Game1 : Game
         //close game from any screen!
         if (keyboardState.IsKeyDown(ControlKeyMap["Close"]))
             Exit();
+
+        //rest the game from any screen
+        if (keyboardState.IsKeyDown(ControlKeyMap["Restart"]))
+            {
+                ResetGame();
+                return;
+            }
+
 
         //idle timer
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;

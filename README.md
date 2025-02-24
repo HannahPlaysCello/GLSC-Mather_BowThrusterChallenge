@@ -58,7 +58,7 @@ Score Tracking
 |Rudder Right   |`Right Arrow`  |
 |Thruster left  |`A`            |
 |Thruster right |`D`            |
-|Restart        |`X`            |
+|Restart        |`R`            |
 
 -------
 
