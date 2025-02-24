@@ -152,6 +152,7 @@ namespace BowThrust_MonoGame
 
         public void Update(GameTime gameTime, KeyboardState keyboardState)
         {
+            /*
             if (keyboardState.IsKeyDown(_game.ControlKeyMap["Menu"]))
             {
                 _game._ship = null;
@@ -159,6 +160,7 @@ namespace BowThrust_MonoGame
                 _stateManager.ChangeState(new MenuState(_stateManager, _game));
                 return;
             }
+            */
 
             //update the active ship
             if (_useThrusters && _game._shipWThrusters != null)
@@ -325,7 +327,7 @@ namespace BowThrust_MonoGame
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.DrawString(_game.Font, "Practice Mode Complete!", new Vector2(300, 150), Color.LimeGreen);
+            spriteBatch.DrawString(_game.Font, "Practice Round Complete!", new Vector2(300, 150), Color.LimeGreen);
             spriteBatch.DrawString(_game.Font, $"Collisions: {_game._scoreManager.Collisions}", new Vector2(300, 200), Color.White);
             spriteBatch.DrawString(_game.Font, "Press R to return to menu", new Vector2(300, 250), Color.Gray);
         }

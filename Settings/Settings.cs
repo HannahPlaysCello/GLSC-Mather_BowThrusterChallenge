@@ -37,7 +37,7 @@ namespace BowThrusterChallenge.Settings
         public string ThrusterLeft { get; set; }
         public string ThrusterRight { get; set; }
         public string Restart { get; set; }
-        public string Menu { get; set; }
+        //public string Menu { get; set; }
         public string Close { get; set;}
         public string Select { get; set;}
         public string MenuUp { get; set;}

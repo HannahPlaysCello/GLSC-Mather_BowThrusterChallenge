@@ -11,7 +11,7 @@ namespace BowThrust_MonoGame
         private SpriteFont Font;
         private int _selectedOption = 0;
         private bool _isKeyPressed = false;
-        private string[] _options = { "Normal Mode", "Thruster Mode", "Challenge Mode" };
+        private string[] _options = { "Practice: Normal Mode", "Practice: Thruster Mode", "Play the Navigation Challenge!" };
 
         public MenuManager(SpriteFont font)
         {

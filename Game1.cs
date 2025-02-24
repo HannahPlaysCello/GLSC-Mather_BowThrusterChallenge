@@ -137,7 +137,7 @@ public class Game1 : Game
             { "ThrusterLeft", ParseKeyFromString(_settings.Controls.ThrusterLeft) },
             { "ThrusterRight", ParseKeyFromString(_settings.Controls.ThrusterRight) },
             { "Restart", ParseKeyFromString(_settings.Controls.Restart) },
-            { "Menu", ParseKeyFromString(_settings.Controls.Menu) },
+            //{ "Menu", ParseKeyFromString(_settings.Controls.Menu) },
             { "Close", ParseKeyFromString(_settings.Controls.Close) },
             { "Select", ParseKeyFromString(_settings.Controls.Select) },
             { "MenuUp", ParseKeyFromString(_settings.Controls.MenuUp) },
@@ -194,7 +194,8 @@ public class Game1 : Game
                 RudderRight = "D", 
                 ThrusterLeft = "Left", 
                 ThrusterRight = "Right", 
-                Menu = "M" }
+                //Menu = "M" 
+            }
         };
     } 
 
