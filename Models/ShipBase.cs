@@ -44,6 +44,7 @@ namespace BowThrust_MonoGame
         protected float _rotation;  //in radians
         protected float _currentSpeed = 0f;
         protected float _currentTurnSpeed = 0f;
+        protected Vector2 _velocity = Vector2.Zero;
 
         //accel/decel
         protected const float _maxSpeed = 100f;
@@ -196,8 +197,33 @@ namespace BowThrust_MonoGame
             HandleForwardMovement(deltaTime);
             HandleTurning(keyboardState, deltaTime, _controlKeyMap);
 
-            // calculate new position but stop if collision
+            // calculate new position, apply mtv if colliding
+            
             Vector2 newPosition = CalculateNewPosition(deltaTime);
+            _position = newPosition;
+            UpdateHitbox();
+
+            //check and resolve collisions
+            if (ComputeMTV(tileMap, out Vector2 mtv))
+            {
+                if (!_wasPreviouslyColliding && _hasStartedMoving)
+                {
+                    _scoreManager.AddCollisionPoints();
+                    _wasPreviouslyColliding = true;
+                }
+                //apply MTV to reposition the ship so that it no longer collides
+                _position += mtv;
+                _currentSpeed = 0;
+            }
+            else
+            {
+                //flag for score counter
+                _wasPreviouslyColliding = false;
+            }
+
+            UpdateHitbox();
+
+            /*
             if (!IsSATCollision(tileMap))
             {
                 _wasPreviouslyColliding = false;
@@ -214,6 +240,7 @@ namespace BowThrust_MonoGame
             }
 
             UpdateHitbox();
+            */
 
             //update animation frames
             UpdateAnimation(gameTime);
@@ -317,6 +344,100 @@ namespace BowThrust_MonoGame
             }
             return false;
         }
+
+
+        //new test for mtC logic to make boat "slide" out of collision instead of turning into blocked tiles
+        protected bool ComputeMTV(TileMap tileMap, out Vector2 mtv)
+        {
+            mtv = Vector2.Zero;
+            const float epsilon = 0.001f; //tolerance
+
+            List<Vector2[]> potentialCollidingTiles = new List<Vector2[]>();
+
+            //collect nearby blocked tiles
+            int tileRadius = (int)Math.Ceiling(_frameWidth / (float)tileMap.TileSize);
+            int centerTileX = (int)(_position.X / tileMap.TileSize);
+            int centerTileY = (int)(_position.Y / tileMap.TileSize);
+
+            for (int x = centerTileX - tileRadius; x <= centerTileX + tileRadius; x++)
+            {
+                for (int y = centerTileY - tileRadius; y <= centerTileY + tileRadius; y++)
+                {
+                    if (x >= 0 && x < tileMap.Width && y >= 0 && y < tileMap.Height)
+                    {
+                        if (!tileMap.GetTile(tileMap.Map[y, x]).IsPassable)
+                        {
+                            potentialCollidingTiles.Add(GetTileCorners(new Vector2(x * tileMap.TileSize, y * tileMap.TileSize), tileMap));
+                        }
+                    }
+                }
+            }
+
+            if (potentialCollidingTiles.Count == 0)
+                return false; //if no potential collisions
+
+            //get the projection axes for the ship
+            List<Vector2> shipAxes = GetProjectionAxes();
+
+            bool collisionDetected = false;
+            float smallestOverlap = float.MaxValue;
+            Vector2 finalMTV = Vector2.Zero;
+
+            //;oop thru potential collisions
+            foreach (var tileCorners in potentialCollidingTiles)
+            {
+                bool tileCollides = true;
+                float candidateOverlap = float.MaxValue;
+                Vector2 candidateMTV = Vector2.Zero;
+
+                //get projection axes for the tile
+                List<Vector2> tileAxes = GetTileProjectionAxes(tileCorners);
+
+                //check both ship and tile axes
+                foreach (Vector2 axis in shipAxes.Concat(tileAxes))
+                {
+                    ProjectOntoAxis(axis, _hitboxCorners, out float minA, out float maxA);
+                    ProjectOntoAxis(axis, tileCorners, out float minB, out float maxB);
+
+                    //if gap, no collision
+                    if (maxA < minB - epsilon || maxB < minA - epsilon)
+                    {
+                        tileCollides = false;
+                        break;
+                    }
+                    else
+                    {
+                        //calculate overlap
+                        float overlap = Math.Min(maxA, maxB) - Math.Max(minA, minB);
+                        //track overlap -- this is waht will make MTV work
+                        if (overlap < candidateOverlap)
+                        {
+                            candidateOverlap = overlap;
+                            candidateMTV = axis * overlap;
+
+                            //adjust MTV direction so it pushes the ship out
+                            Vector2 tileCenter = (tileCorners[0] + tileCorners[2]) / 2;
+                            if (Vector2.Dot(_position - tileCenter, axis) < 0)
+                            {
+                                candidateMTV = -candidateMTV;
+                            }
+                        }
+                    }
+                }
+
+                if (tileCollides && candidateOverlap < smallestOverlap)
+                {
+                    smallestOverlap = candidateOverlap;
+                    finalMTV = candidateMTV;
+                    collisionDetected = true;
+                }
+            }
+
+            mtv = finalMTV;
+            return collisionDetected;
+        }
+
+
 
 
 
