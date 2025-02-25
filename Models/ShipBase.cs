@@ -201,10 +201,16 @@ namespace BowThrust_MonoGame
             Vector2 newPosition = CalculateNewPosition(deltaTime);
             if (!IsSATCollision(tileMap))
             {
+                _wasPreviouslyColliding = false;
                 _position = newPosition;
             }
             else
             {
+                if (!_wasPreviouslyColliding && _hasStartedMoving)
+                {
+                    _scoreManager.AddCollisionPoints();
+                    _wasPreviouslyColliding = true;
+                }
                 _currentSpeed = 0; //stop if collision
             }
 
@@ -296,7 +302,8 @@ namespace BowThrust_MonoGame
                     ProjectOntoAxis(axis, _hitboxCorners, out float minA, out float maxA);
                     ProjectOntoAxis(axis, tileCorners, out float minB, out float maxB);
 
-                    if (maxA < minB || maxB < minA)
+                    const float epsilon = 0.1f; //tolerance value for collisions
+                    if (maxA < minB - epsilon || maxB < minA - epsilon)
                     {
                         tileCollides = false; // a separating axis was found for this tile
                         break;
@@ -305,12 +312,10 @@ namespace BowThrust_MonoGame
 
                 if (tileCollides)
                 {
-                    Console.WriteLine("collision detected!");
                     return true; // collision found on this tile
                 }
 
             }
-            Console.WriteLine("no collision detected!");
             return false;
         }
 
