@@ -150,7 +150,6 @@ namespace BowThrust_MonoGame
             return axes;
         }
 
-
         //move with the ship sprite to detect collisions
         private void UpdateHitbox()
         {
@@ -318,6 +317,8 @@ namespace BowThrust_MonoGame
             }
             return false;
         }
+
+
 
         //send to end screen if end tile hit
         public bool IsEndTileAtPosition(Vector2 position, TileMap tileMap)

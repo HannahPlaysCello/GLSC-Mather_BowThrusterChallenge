@@ -48,7 +48,6 @@ public class Game1 : Game
 
     //tile map set-up
     public TileMap TileMap { get; private set; }
-    //private TileMap _tileMap;
     private int desiredTileSize = 32;
 
     //score
@@ -56,7 +55,6 @@ public class Game1 : Game
 
     //menu
     public MenuManager MenuManager { get; private set; }
-    //private MenuManager _menuManager;
 
     //timeout 
     private float idleTime = 0f;
@@ -82,7 +80,7 @@ public class Game1 : Game
 
     //sounds
     private Song _gameplayMusic;
-    //private Song _manuMusic; //not going to implement this one right exactly now
+    //private Song _menuMusic; //not going to implement this one right exactly now
     private bool _isPlayingGameMusic = false;
 
 
