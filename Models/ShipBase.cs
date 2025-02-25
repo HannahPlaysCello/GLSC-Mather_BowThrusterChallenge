@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using System.Linq;
+
 namespace BowThrust_MonoGame
 {
     //base class for all ships
@@ -21,7 +23,7 @@ namespace BowThrust_MonoGame
         protected ScoreManager _scoreManager;
 
         //hitbox!
-        protected Vector2[] _hitboxCorners = new Vector2[4]; //:)))))))))))))
+        protected Vector2[] _hitboxCorners = new Vector2[5]; //make pentagon for pointy ship bow
 
         //this needs work
         //for boundary manager
@@ -76,21 +78,97 @@ namespace BowThrust_MonoGame
             UpdateHitbox(); //calculated hitbox upon load so no garbage values decide to appear
         }
 
+        //boat edges
+        private List<Vector2> GetEdges()
+        {
+            List<Vector2> edges = new List<Vector2>();
+            for (int i = 0; i < _hitboxCorners.Length; i++)
+            {
+                //current corner to next one
+                Vector2 start = _hitboxCorners[i];
+                Vector2 end = _hitboxCorners[(i + 1) % _hitboxCorners.Length];
+                //edge vector by subtracting 
+                Vector2 edge = end - start;
+                edges.Add(edge);
+            }
+            return edges;
+        }
+
+        //boat normal axes
+        private List<Vector2> GetProjectionAxes()
+        {
+            List<Vector2> axes = new List<Vector2>();
+            foreach (var edge in GetEdges())
+            {
+                //get normal (gotta tell dr han)
+                Vector2 normal = new Vector2(-edge.Y, edge.X);
+                //unit vector (gotta tell dr meyer)
+                normal.Normalize();
+                //store
+                axes.Add(normal);
+            }
+            return axes;
+        }
+
+        private void ProjectOntoAxis(Vector2 axis, Vector2[] corners, out float min, out float max)
+        {
+            min = max = Vector2.Dot(corners[0], axis);
+            for (int i = 1; i < corners.Length; i++)
+            {
+                float projection = Vector2.Dot(corners[i], axis);
+                if (projection < min)
+                    min = projection;
+                if (projection > max)
+                    max = projection;
+            }
+        }
+
+        //get tiles corners
+        private Vector2[] GetTileCorners(Vector2 tilePosition, TileMap tileMap)
+        {
+            int tileX = (int)(tilePosition.X / tileMap.TileSize);
+            int tileY = (int)(tilePosition.Y / tileMap.TileSize);
+
+            Vector2 topLeft = new Vector2(tileX * tileMap.TileSize, tileY * tileMap.TileSize);
+            Vector2 topRight = topLeft + new Vector2(tileMap.TileSize, 0);
+            Vector2 bottomLeft = topLeft + new Vector2(0, tileMap.TileSize);
+            Vector2 bottomRight = topLeft + new Vector2(tileMap.TileSize, tileMap.TileSize);
+
+            return new Vector2[] { topLeft, topRight, bottomRight, bottomLeft };
+        }
+
+        private List<Vector2> GetTileProjectionAxes(Vector2[] tileCorners)
+        {
+            List<Vector2> axes = new List<Vector2>();
+            for (int i = 0; i < tileCorners.Length; i++)
+            {
+                Vector2 edge = tileCorners[(i + 1) % tileCorners.Length] - tileCorners[i];
+                Vector2 normal = new Vector2(-edge.Y, edge.X);
+                normal.Normalize();
+                axes.Add(normal);
+            }
+            return axes;
+        }
+
+
+        //move with the ship sprite to detect collisions
         private void UpdateHitbox()
         {
-            float Width = _frameWidth;
+            float width = _frameWidth;
             float halfHeight = _frameHeight / 5;
 
-            Vector2 topLeft = new Vector2(0, -halfHeight);
-            Vector2 topRight = new Vector2(Width, -halfHeight);
-            Vector2 bottomLeft = new Vector2(0, halfHeight);
-            Vector2 bottomRight = new Vector2(Width, halfHeight);
+            Vector2 backLeft = new Vector2(0, -halfHeight);
+            Vector2 backRight = new Vector2(0, halfHeight);
+            Vector2 frontLeft = new Vector2(width * 0.8f, -halfHeight);
+            Vector2 frontRight = new Vector2(width * 0.8f, halfHeight);
+            Vector2 frontCenter = new Vector2(width, 0);
 
             Matrix rotationMatrix = Matrix.CreateRotationZ(_rotation);
-            _hitboxCorners[0] = Vector2.Transform(topLeft, rotationMatrix) + _position;
-            _hitboxCorners[1] = Vector2.Transform(topRight, rotationMatrix) + _position;
-            _hitboxCorners[2] = Vector2.Transform(bottomLeft, rotationMatrix) + _position;
-            _hitboxCorners[3] = Vector2.Transform(bottomRight, rotationMatrix) + _position;
+            _hitboxCorners[0] = Vector2.Transform(backLeft, rotationMatrix) + _position;
+            _hitboxCorners[4] = Vector2.Transform(backRight, rotationMatrix) + _position;
+            _hitboxCorners[1] = Vector2.Transform(frontLeft, rotationMatrix) + _position;
+            _hitboxCorners[3] = Vector2.Transform(frontRight, rotationMatrix) + _position;
+            _hitboxCorners[2] = Vector2.Transform(frontCenter, rotationMatrix) + _position;
         }
 
         //boat texture/sprite sheet setup
@@ -121,13 +199,13 @@ namespace BowThrust_MonoGame
 
             // calculate new position but stop if collision
             Vector2 newPosition = CalculateNewPosition(deltaTime);
-            if (!IsCollisionAtPosition(newPosition, tileMap))
+            if (!IsSATCollision(tileMap))
             {
                 _position = newPosition;
             }
             else
             {
-                _currentSpeed = 0; //stof if collision!
+                _currentSpeed = 0; //stop if collision
             }
 
             UpdateHitbox();
@@ -176,30 +254,64 @@ namespace BowThrust_MonoGame
             return new Vector2(_position.X + deltaX, _position.Y + deltaY);
         }
 
-        //stop if collided
-        protected bool IsCollisionAtPosition(Vector2 testPosition, TileMap tileMap)
+        //collisions
+        protected bool IsSATCollision(TileMap tileMap)
         {
-            if (!_hasStartedMoving) //ignore collisions before the boat starts moving
-                return false;
 
-            bool isColliding = false;
+            List<Vector2[]> potentialCollidingTiles = new List<Vector2[]>();
 
-            foreach (Vector2 corner in _hitboxCorners)
+            //collect all tiles under ship
+            int tileRadius = (int)Math.Ceiling(_frameWidth / (float)tileMap.TileSize);
+            int centerTileX = (int)(_position.X / tileMap.TileSize);
+            int centerTileY = (int)(_position.Y / tileMap.TileSize);
+
+            for (int x = centerTileX - tileRadius; x <= centerTileX + tileRadius; x++)
             {
-                if (tileMap.IsCollisionTile(corner))
+                for (int y = centerTileY - tileRadius; y <= centerTileY + tileRadius; y++)
                 {
-                    isColliding = true;
-                    break;
+                    if (x >= 0 && x < tileMap.Width && y >= 0 && y < tileMap.Height)
+                    {
+                        if (!tileMap.GetTile(tileMap.Map[y, x]).IsPassable)
+                        {
+                            potentialCollidingTiles.Add(GetTileCorners(new Vector2(x * tileMap.TileSize, y * tileMap.TileSize), tileMap));
+                        }
+                    }
                 }
             }
 
-            if (isColliding && !_wasPreviouslyColliding)
-            {
-                _scoreManager?.AddCollisionPoints();
-            }
+            //don't check sat if nothing nearby can collide
+            if (potentialCollidingTiles.Count == 0)
+                return false;
 
-            _wasPreviouslyColliding = isColliding;
-            return isColliding;
+            //get ship edges slash axes
+            List<Vector2> shipAxes = GetProjectionAxes();
+
+            foreach (var tileCorners in potentialCollidingTiles)
+            {
+                bool tileCollides = true;  // Reset for each tile
+                List<Vector2> tileAxes = GetTileProjectionAxes(tileCorners);
+
+                foreach (Vector2 axis in shipAxes.Concat(tileAxes))
+                {
+                    ProjectOntoAxis(axis, _hitboxCorners, out float minA, out float maxA);
+                    ProjectOntoAxis(axis, tileCorners, out float minB, out float maxB);
+
+                    if (maxA < minB || maxB < minA)
+                    {
+                        tileCollides = false; // a separating axis was found for this tile
+                        break;
+                    }
+                }
+
+                if (tileCollides)
+                {
+                    Console.WriteLine("collision detected!");
+                    return true; // collision found on this tile
+                }
+
+            }
+            Console.WriteLine("no collision detected!");
+            return false;
         }
 
         //send to end screen if end tile hit
@@ -265,13 +377,12 @@ namespace BowThrust_MonoGame
             spriteBatch.Draw(BoatTexture, _position - camera.Position, _sourceRectangle, Color.White, _rotation, _origin, scale, SpriteEffects.None, 0f);
 
             //temporary draw hitbox for debug
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < _hitboxCorners.Length; i++)
             {
-                Vector2 start = _hitboxCorners[i];
-                Vector2 end = _hitboxCorners[(i + 1) % 4]; // Connect to the next point
+                Vector2 start = _hitboxCorners[i] - camera.Position;
+                Vector2 end = _hitboxCorners[(i + 1) % _hitboxCorners.Length] - camera.Position; //loop back to first point
 
-                DrawLine(spriteBatch, _hitboxCorners[i] - camera.Position, _hitboxCorners[(i + 1) % 4] - camera.Position, Color.Red);
-
+                DrawLine(spriteBatch, start, end, Color.Red);
             }
         }
     }
