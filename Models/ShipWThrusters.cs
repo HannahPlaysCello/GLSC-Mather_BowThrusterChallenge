@@ -15,11 +15,10 @@ namespace BowThrust_MonoGame
         public ShipWThrusters(Vector2 initialPosition, int screenWidth, int screenHeight, ScoreManager scoreManager)
             : base(initialPosition, screenWidth, screenHeight, scoreManager) { }
 
-        //main update loop
         public override void Update(GameTime gameTime, KeyboardState keyboardState, Dictionary<string, Keys> _controlKeyMap, TileMap tileMap)
         {
-            base.Update(gameTime, keyboardState, _controlKeyMap, tileMap);
             HandleThrusterMovement(keyboardState, gameTime, _controlKeyMap, tileMap);
+            base.Update(gameTime, keyboardState, _controlKeyMap, tileMap);
         }
 
         private void HandleThrusterMovement(KeyboardState keyboardState, GameTime gameTime, Dictionary<string, Keys> _controlKeyMap, TileMap tileMap)
@@ -33,29 +32,22 @@ namespace BowThrust_MonoGame
             else
             {
                 if (_currentThrusterSpeed > 0)
-                    _currentThrusterSpeed = 0;
+                    _currentThrusterSpeed = Math.Max(_currentThrusterSpeed - _thrusterDeceleration * deltaTime, 0); 
                 else if (_currentThrusterSpeed < 0)
-                    _currentThrusterSpeed = 0;
+                    _currentThrusterSpeed = Math.Min(_currentThrusterSpeed + _thrusterDeceleration * deltaTime, 0);
             }
 
             if (_currentThrusterSpeed != 0)
             {
-                Vector2 thrusterMovement = new Vector2(
+                Vector2 lateralAxis = new Vector2(
                     (float)Math.Cos(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime,
                     (float)Math.Sin(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime
                 );
 
-                Vector2 testPosition = _position + thrusterMovement;
+                Vector2 testPosition = _position + lateralAxis;
+                _position = testPosition;
+                UpdateHitbox();
 
-                // Only apply thruster movement if it doesn't collide
-                if (!IsSATCollision(tileMap))
-                {
-                    _position = testPosition;
-                }
-                else
-                {
-                    _currentThrusterSpeed = 0; // Stop thruster movement
-                }
             }
         }
     }

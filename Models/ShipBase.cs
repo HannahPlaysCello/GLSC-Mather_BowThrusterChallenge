@@ -44,7 +44,6 @@ namespace BowThrust_MonoGame
         protected float _rotation;  //in radians
         protected float _currentSpeed = 0f;
         protected float _currentTurnSpeed = 0f;
-        protected Vector2 _velocity = Vector2.Zero;
 
         //accel/decel
         protected const float _maxSpeed = 100f;
@@ -152,7 +151,7 @@ namespace BowThrust_MonoGame
         }
 
         //move with the ship sprite to detect collisions
-        private void UpdateHitbox()
+        public void UpdateHitbox()
         {
             float width = _frameWidth;
             float halfHeight = _frameHeight / 5;
@@ -198,7 +197,6 @@ namespace BowThrust_MonoGame
             HandleTurning(keyboardState, deltaTime, _controlKeyMap);
 
             // calculate new position, apply mtv if colliding
-            
             Vector2 newPosition = CalculateNewPosition(deltaTime);
             _position = newPosition;
             UpdateHitbox();
@@ -222,25 +220,6 @@ namespace BowThrust_MonoGame
             }
 
             UpdateHitbox();
-
-            /*
-            if (!IsSATCollision(tileMap))
-            {
-                _wasPreviouslyColliding = false;
-                _position = newPosition;
-            }
-            else
-            {
-                if (!_wasPreviouslyColliding && _hasStartedMoving)
-                {
-                    _scoreManager.AddCollisionPoints();
-                    _wasPreviouslyColliding = true;
-                }
-                _currentSpeed = 0; //stop if collision
-            }
-
-            UpdateHitbox();
-            */
 
             //update animation frames
             UpdateAnimation(gameTime);
@@ -286,71 +265,12 @@ namespace BowThrust_MonoGame
             return new Vector2(_position.X + deltaX, _position.Y + deltaY);
         }
 
-        //collisions
-        protected bool IsSATCollision(TileMap tileMap)
-        {
-
-            List<Vector2[]> potentialCollidingTiles = new List<Vector2[]>();
-
-            //collect all tiles under ship
-            int tileRadius = (int)Math.Ceiling(_frameWidth / (float)tileMap.TileSize);
-            int centerTileX = (int)(_position.X / tileMap.TileSize);
-            int centerTileY = (int)(_position.Y / tileMap.TileSize);
-
-            for (int x = centerTileX - tileRadius; x <= centerTileX + tileRadius; x++)
-            {
-                for (int y = centerTileY - tileRadius; y <= centerTileY + tileRadius; y++)
-                {
-                    if (x >= 0 && x < tileMap.Width && y >= 0 && y < tileMap.Height)
-                    {
-                        if (!tileMap.GetTile(tileMap.Map[y, x]).IsPassable)
-                        {
-                            potentialCollidingTiles.Add(GetTileCorners(new Vector2(x * tileMap.TileSize, y * tileMap.TileSize), tileMap));
-                        }
-                    }
-                }
-            }
-
-            //don't check sat if nothing nearby can collide
-            if (potentialCollidingTiles.Count == 0)
-                return false;
-
-            //get ship edges slash axes
-            List<Vector2> shipAxes = GetProjectionAxes();
-
-            foreach (var tileCorners in potentialCollidingTiles)
-            {
-                bool tileCollides = true;  // Reset for each tile
-                List<Vector2> tileAxes = GetTileProjectionAxes(tileCorners);
-
-                foreach (Vector2 axis in shipAxes.Concat(tileAxes))
-                {
-                    ProjectOntoAxis(axis, _hitboxCorners, out float minA, out float maxA);
-                    ProjectOntoAxis(axis, tileCorners, out float minB, out float maxB);
-
-                    const float epsilon = 0.1f; //tolerance value for collisions
-                    if (maxA < minB - epsilon || maxB < minA - epsilon)
-                    {
-                        tileCollides = false; // a separating axis was found for this tile
-                        break;
-                    }
-                }
-
-                if (tileCollides)
-                {
-                    return true; // collision found on this tile
-                }
-
-            }
-            return false;
-        }
-
-
         //new test for mtC logic to make boat "slide" out of collision instead of turning into blocked tiles
         protected bool ComputeMTV(TileMap tileMap, out Vector2 mtv)
         {
             mtv = Vector2.Zero;
             const float epsilon = 0.001f; //tolerance
+            const float pushBuffer = 2f;
 
             List<Vector2[]> potentialCollidingTiles = new List<Vector2[]>();
 
@@ -433,13 +353,15 @@ namespace BowThrust_MonoGame
                 }
             }
 
+            //push ship back a little
+            if (collisionDetected && finalMTV != Vector2.Zero)
+            {
+                finalMTV += Vector2.Normalize(finalMTV) * pushBuffer;
+            }
+
             mtv = finalMTV;
             return collisionDetected;
         }
-
-
-
-
 
         //send to end screen if end tile hit
         public bool IsEndTileAtPosition(Vector2 position, TileMap tileMap)
