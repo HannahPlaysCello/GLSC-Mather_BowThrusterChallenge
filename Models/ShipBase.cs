@@ -270,7 +270,6 @@ namespace BowThrust_MonoGame
         {
             mtv = Vector2.Zero;
             const float epsilon = 0.001f; //tolerance
-            const float pushBuffer = 2f;
 
             List<Vector2[]> potentialCollidingTiles = new List<Vector2[]>();
 
@@ -351,12 +350,6 @@ namespace BowThrust_MonoGame
                     finalMTV = candidateMTV;
                     collisionDetected = true;
                 }
-            }
-
-            //push ship back a little
-            if (collisionDetected && finalMTV != Vector2.Zero)
-            {
-                finalMTV += Vector2.Normalize(finalMTV) * pushBuffer;
             }
 
             mtv = finalMTV;

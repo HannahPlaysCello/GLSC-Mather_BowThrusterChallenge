@@ -39,6 +39,7 @@ namespace BowThrust_MonoGame
 
             if (_currentThrusterSpeed != 0)
             {
+                //these var names made more sense a couple iterations ago
                 Vector2 lateralAxis = new Vector2(
                     (float)Math.Cos(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime,
                     (float)Math.Sin(_rotation + MathHelper.PiOver2) * _currentThrusterSpeed * deltaTime
